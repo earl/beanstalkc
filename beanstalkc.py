@@ -1,10 +1,13 @@
 import socket
-import yaml
 
 class Connection(object):
-    def __init__(self, host='127.0.0.1', port=11300):
+    def __init__(self, host='127.0.0.1', port=11300, decode_yaml=True):
+        if decode_yaml:
+            global yaml
+            import yaml
         self.host = host
         self.port = port
+        self.decode_yaml = decode_yaml
         self.connect()
 
     def connect(self):
@@ -43,7 +46,7 @@ class Connection(object):
     def interact_yaml(self, command, expected):
         [size] = self.interact(command, expected)
         body = self.read_body(int(size))
-        return yaml.load(body)
+        return yaml.load(body) if self.decode_yaml else body
 
     # -- public interface --
 
