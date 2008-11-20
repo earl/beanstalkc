@@ -1,5 +1,9 @@
 import socket
 
+class UnexpectedResponse(Exception): pass
+class CommandFailed(Exception): pass
+class DeadlineSoon(Exception): pass
+
 class Connection(object):
     def __init__(self, host='127.0.0.1', port=11300, decode_yaml=True):
         if decode_yaml:
@@ -18,16 +22,15 @@ class Connection(object):
     def close(self):
         self.socket.close()
 
-    def interact(self, command, expected):
+    def interact(self, command, expected_ok, expected_err=[]):
         self.socket.send(command)
-        return self.check_response(expected)
-
-    def check_response(self, expected):
         status, results = self.read_response()
-        if status in expected:
-            return status, results
+        if status in expected_ok:
+            return results
+        elif status in expected_err:
+            raise CommandFailed(status, results)
         else:
-            raise 'unexpected-response', status # @@
+            raise UnexpectedResponse(status, results)
 
     def read_response(self):
         response = self.socket_file.readline().split()
@@ -38,21 +41,16 @@ class Connection(object):
         self.socket_file.read(2) # trailing crlf
         return body
 
-    def interact_value(self, command, expected):
-        _, results = self.interact(command, expected)
-        return results[0]
+    def interact_value(self, command, expected_ok, expected_err=[]):
+        return self.interact(command, expected_ok, expected_err)[0]
 
     def interact_job(self, command, expected_ok, expected_err):
-        status, results = self.interact(command, [expected_ok] + expected_err)
-        if status in expected_ok:
-            jid, size = results
-            body = self.read_body(int(size))
-            return status, (jid, size, body)
-        else:
-            return status, results
+        jid, size = self.interact(command, expected_ok, expected_err)
+        body = self.read_body(int(size))
+        return jid, size, body
 
-    def interact_yaml(self, command, expected):
-        size = self.interact_value(command, expected)
+    def interact_yaml(self, command, expected_ok, expected_err=[]):
+        [size] = self.interact(command, expected_ok, expected_err)
         body = self.read_body(int(size))
         return yaml.load(body) if self.decode_yaml else body
 
@@ -70,16 +68,16 @@ class Connection(object):
             command = 'reserve-with-timeout %d\r\n' % timeout
         else:
             command = 'reserve\r\n'
-        status, results = self.interact_job(command,
-                                            'RESERVED',
-                                            ['DEADLINE_SOON', 'TIMED_OUT'])
-        if status == 'TIMED_OUT':
-            return None
-        elif status == 'DEADLINE_SOON':
-            raise 'deadline-soon', results # @@
-        else:
-            jid, size, body = results
+        try:
+            jid, size, body = self.interact_job(command,
+                                                'RESERVED',
+                                                ['DEADLINE_SOON', 'TIMED_OUT'])
             return Job(self, int(jid), body, True)
+        except CommandFailed, (status, results):
+            if status == 'TIMED_OUT':
+                return None
+            elif status == 'DEADLINE_SOON':
+                raise DeadlineSoon(results)
 
     def tubes(self):
         return self.interact_yaml('list-tubes\r\n', 'OK')
@@ -97,9 +95,12 @@ class Connection(object):
         return int(self.interact_value('watch %s\r\n' % name, 'WATCHING'))
 
     def ignore(self, name):
-        status, results = self.interact('ignore %s\r\n' % name,
-                                        ['WATCHING', 'NOT_IGNORED'])
-        return int(results[0]) if status == 'WATCHING' else 1
+        try:
+            return int(self.interact_value('ignore %s\r\n' % name,
+                                           'WATCHING',
+                                           'NOT_IGNORED'))
+        except CommandFailed:
+            return 1
 
     def stats(self):
         return self.interact_yaml('stats\r\n', 'OK')
