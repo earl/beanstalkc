@@ -36,9 +36,9 @@ class Connection(object):
         return body
 
     def interact_job(self, command, expected):
-        [id, size] = self.interact(command, expected)
+        [jid, size] = self.interact(command, expected)
         body = self.read_body(int(size))
-        return id, size, body
+        return jid, size, body
 
     def interact_yaml(self, command, expected):
         [size] = self.interact(command, expected)
@@ -48,19 +48,19 @@ class Connection(object):
     # -- public interface --
 
     def put(self, body, priority=2147483648, delay=0, ttr=120):
-        [id] = self.interact(
+        [jid] = self.interact(
                 'put %d %d %d %d\r\n%s\r\n' % 
                     (priority, delay, ttr, len(body), body),
                 ['INSERTED', 'BURIED'])
-        return int(id)
+        return int(jid)
 
     def reserve(self, timeout=None):
         if timeout:
             command = 'reserve-with-timeout %d\r\n' % timeout
         else:
             command = 'reserve\r\n'
-        id, size, body = self.interact_job(command, 'RESERVED')
-        return Job(self, int(id), body, True)
+        jid, size, body = self.interact_job(command, 'RESERVED')
+        return Job(self, int(jid), body, True)
 
     def tubes(self):
         return self.interact_yaml('list-tubes\r\n', 'OK')
@@ -86,14 +86,14 @@ class Connection(object):
 
     # -- job interactors --
 
-    def delete(self, id):
-        self.interact('delete %d\r\n' % id, 'DELETED')
+    def delete(self, jid):
+        self.interact('delete %d\r\n' % jid, 'DELETED')
 
 
 class Job:
-    def __init__(self, conn, id, body, reserved=True):
+    def __init__(self, conn, jid, body, reserved=True):
         self.conn = conn
-        self.id = id
+        self.jid = jid
         self.body = body
         self.reserved = reserved
 
@@ -101,5 +101,5 @@ class Job:
 
     def delete(self):
         if self.reserved:
-            self.conn.delete(self.id)
+            self.conn.delete(self.jid)
             self.reserved = False
