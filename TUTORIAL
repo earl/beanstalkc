@@ -1,0 +1,105 @@
+Getting Started
+---------------
+
+To use beanstalkc we have to import the library and set up a connection to a
+beanstalkd server:
+
+    >>> import beanstalkc
+    >>> beanstalk = beanstalkc.Connection(host='localhost', port=14711)
+
+If we leave out the `host` and/or `port` parameters, `'127.0.0.1'` and `11300`
+would be used as defaults, respectively.
+
+
+Basic Operation
+---------------
+
+Now that we have a connection set up, we can enqueue jobs:
+
+    >>> beanstalk.put('foo')
+    1
+
+Or we can request jobs:
+
+    >>> job = beanstalk.reserve()
+    >>> job.body
+    'foo'
+
+Once we are done with processing a job, we have to mark it as done, otherwise
+jobs are re-queued by beanstalkd after a "time to run" (120 seconds, per
+default) is surpassed. A job is marked as done, by calling `delete`:
+
+    >>> job.delete()
+
+`reserve` blocks until a job is ready, possibly forever. If that is not desired,
+we can invoke `reserve` with a timeout (in seconds) how long we want to wait to
+receive a job. If such a `reserve` times out, it will return `None`:
+
+    >>> beanstalk.reserve(timeout=0) is None
+    True
+
+If you use a timeout of 0, `reserve` will immediately return either a job or
+`None`.
+
+
+Tube Management
+---------------
+
+A single beanstalkd server can provide many different queues, called "tubes" in
+beanstalkd. To see all available tubes:
+
+    >>> beanstalk.tubes()
+    ['default']
+
+A beanstalkd client can choose one tube into which its job are put. This is the
+tube "used" by the client. To see what tube you are currently using:
+
+    >>> beanstalk.using()
+    'default'
+
+And to use a different tube:
+
+    >>> beanstalk.use('foo')
+    'foo'
+    >>> beanstalk.using()
+    'foo'
+
+If you decide to use a tube, that does not yet exist, the tube is automatically
+created by beanstalkd:
+
+    >>> beanstalk.tubes()
+    ['default', 'foo']
+
+Further, a beanstalkd client can choose many tubes to reserve jobs from. These
+tubes are "watched" by the client. To see what tubes you are currently watching:
+
+    >>> beanstalk.watching()
+    ['default']
+
+To watch an additional tube:
+
+    >>> beanstalk.watch('bar')
+    2
+    >>> beanstalk.watching()
+    ['default', 'bar']
+
+As before, tubes that do not yet exist are created automatically once you start
+watching them:
+
+    >>> beanstalk.tubes()
+    ['default', 'foo', 'bar']
+
+To stop watching a tube:
+
+    >>> beanstalk.ignore('default')
+    1
+    >>> beanstalk.watching()
+    ['bar']
+
+You can't watch zero tubes. So if you try to ignore the last tube you are
+watching, this is silently ignored:
+
+    >>> beanstalk.ignore('bar')
+    1
+    >>> beanstalk.watching()
+    ['bar']

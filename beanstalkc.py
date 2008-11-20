@@ -123,3 +123,12 @@ class Job:
         if self.reserved:
             self.conn.delete(self.jid)
             self.reserved = False
+
+
+if __name__ == '__main__':
+    import doctest, time, os
+    pid = os.spawnlp(os.P_NOWAIT,
+                     'beanstalkd',
+                     'beanstalkd', '-l', '127.0.0.1', '-p', '14711')
+    doctest.testfile('TUTORIAL')
+    os.kill(pid, 9)
