@@ -23,11 +23,11 @@ class Connection(object):
         return self.check_response(expected)
 
     def check_response(self, expected):
-        word, vals = self.read_response()
-        if word in expected:
-            return vals
+        status, results = self.read_response()
+        if status in expected:
+            return status, results
         else:
-            raise 'unexpected-response' # @@
+            raise 'unexpected-response', status # @@
 
     def read_response(self):
         response = self.socket_file.readline().split()
@@ -38,51 +38,68 @@ class Connection(object):
         self.socket_file.read(2) # trailing crlf
         return body
 
-    def interact_job(self, command, expected):
-        [jid, size] = self.interact(command, expected)
-        body = self.read_body(int(size))
-        return jid, size, body
+    def interact_value(self, command, expected):
+        _, results = self.interact(command, expected)
+        return results[0]
+
+    def interact_job(self, command, expected_ok, expected_err):
+        status, results = self.interact(command, [expected_ok] + expected_err)
+        if status in expected_ok:
+            jid, size = results
+            body = self.read_body(int(size))
+            return status, (jid, size, body)
+        else:
+            return status, results
 
     def interact_yaml(self, command, expected):
-        [size] = self.interact(command, expected)
+        size = self.interact_value(command, expected)
         body = self.read_body(int(size))
         return yaml.load(body) if self.decode_yaml else body
 
     # -- public interface --
 
     def put(self, body, priority=2147483648, delay=0, ttr=120):
-        [jid] = self.interact(
-                'put %d %d %d %d\r\n%s\r\n' % 
+        jid = self.interact_value(
+                'put %d %d %d %d\r\n%s\r\n' %
                     (priority, delay, ttr, len(body), body),
                 ['INSERTED', 'BURIED'])
         return int(jid)
 
     def reserve(self, timeout=None):
-        if timeout:
+        if timeout is not None:
             command = 'reserve-with-timeout %d\r\n' % timeout
         else:
             command = 'reserve\r\n'
-        jid, size, body = self.interact_job(command, 'RESERVED')
-        return Job(self, int(jid), body, True)
+        status, results = self.interact_job(command,
+                                            'RESERVED',
+                                            ['DEADLINE_SOON', 'TIMED_OUT'])
+        if status == 'TIMED_OUT':
+            return None
+        elif status == 'DEADLINE_SOON':
+            raise 'deadline-soon', results # @@
+        else:
+            jid, size, body = results
+            return Job(self, int(jid), body, True)
 
     def tubes(self):
         return self.interact_yaml('list-tubes\r\n', 'OK')
 
     def using(self):
-        return self.interact('list-tube-used\r\n', 'USING')[0]
+        return self.interact_value('list-tube-used\r\n', 'USING')
 
     def use(self, name):
-        return self.interact('use %s\r\n' % name, 'USING')[0]
+        return self.interact_value('use %s\r\n' % name, 'USING')
 
     def watching(self):
         return self.interact_yaml('list-tubes-watched\r\n', 'OK')
 
     def watch(self, name):
-        return int(self.interact('watch %s\r\n' % name, 'WATCHING')[0])
+        return int(self.interact_value('watch %s\r\n' % name, 'WATCHING'))
 
     def ignore(self, name):
-        r = self.interact('ignore %s\r\n' % name, ['WATCHING', 'NOT_IGNORED'])
-        return r[0] if r else 1
+        status, results = self.interact('ignore %s\r\n' % name,
+                                        ['WATCHING', 'NOT_IGNORED'])
+        return int(results[0]) if status == 'WATCHING' else 1
 
     def stats(self):
         return self.interact_yaml('stats\r\n', 'OK')
