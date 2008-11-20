@@ -105,10 +105,16 @@ class Connection(object):
     def stats(self):
         return self.interact_yaml('stats\r\n', 'OK')
 
+    def stats_tube(self, name):
+        return self.interact_yaml('stats-tube %s\r\n' % name, 'OK', 'NOT_FOUND')
+
     # -- job interactors --
 
     def delete(self, jid):
         self.interact('delete %d\r\n' % jid, 'DELETED')
+
+    def stats_job(self, jid):
+        return self.interact_yaml('stats-job %d\r\n' % jid, 'OK', 'NOT_FOUND')
 
 
 class Job:
