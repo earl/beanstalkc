@@ -54,6 +54,13 @@ class Connection(object):
         body = self.read_body(int(size))
         return yaml.load(body) if self.decode_yaml else body
 
+    def interact_peek(self, command):
+        try:
+            jid, size, body = self.interact_job(command, 'FOUND', 'NOT_FOUND')
+            return Job(self, int(jid), body, False)
+        except CommandFailed, (status, results):
+            return None
+
     # -- public interface --
 
     def put(self, body, priority=2147483648, delay=0, ttr=120):
@@ -78,6 +85,21 @@ class Connection(object):
                 return None
             elif status == 'DEADLINE_SOON':
                 raise DeadlineSoon(results)
+
+    def kick(self, bound=1):
+        return int(self.interact_value('kick %d\r\n' % bound, 'KICKED'))
+
+    def peek(self, jid):
+        return self.interact_peek('peek %d\r\n' % jid)
+
+    def peek_ready(self):
+        return self.interact_peek('peek-ready\r\n')
+
+    def peek_delayed(self):
+        return self.interact_peek('peek-delayed\r\n')
+
+    def peek_buried(self):
+        return self.interact_peek('peek-buried\r\n')
 
     def tubes(self):
         return self.interact_yaml('list-tubes\r\n', 'OK')
@@ -113,6 +135,17 @@ class Connection(object):
     def delete(self, jid):
         self.interact('delete %d\r\n' % jid, 'DELETED')
 
+    def release(self, jid, priority=None, delay=0):
+        self.interact('release %d %d %d\r\n' % (jid, priority, delay),
+                      ['RELEASED', 'BURIED'],
+                      ['NOT_FOUND'])
+
+    def bury(self, jid, priority=None):
+        self.interact('bury %d %d\r\n' % (jid, priority), 'BURIED', 'NOT_FOUND')
+
+    def touch(self, jid):
+        self.interact('touch %d\r\n' % jid, 'TOUCHED', 'NOT_FOUND')
+
     def stats_job(self, jid):
         return self.interact_yaml('stats-job %d\r\n' % jid, 'OK', 'NOT_FOUND')
 
@@ -130,6 +163,20 @@ class Job:
         if self.reserved:
             self.conn.delete(self.jid)
             self.reserved = False
+
+    def release(self, priority=None, delay=0):
+        if self.reserved:
+            self.conn.release(self.jid, priority or self.stats()['pri'], delay)
+            self.reserved = False
+
+    def bury(self, priority=None):
+        if self.reserved:
+            self.conn.bury(self.jid, priority or self.stats()['pri'])
+            self.reserved = False
+
+    def touch(self):
+        if self.reserved:
+            self.conn.touch(self.jid)
 
     def stats(self):
         return self.conn.stats_job(self.jid)

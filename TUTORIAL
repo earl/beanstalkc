@@ -173,3 +173,146 @@ the `Connection`'s `stats` method. We won't go into details here, but:
 
     >>> len(beanstalk.stats())
     40
+
+
+Advanced Operation
+------------------
+
+In "Basic Operation" above, we discussed the typical lifecycle of a job:
+
+     put            reserve               delete
+    -----> [READY] ---------> [RESERVED] --------> *poof*
+
+
+    (This picture was taken from beanstalkd's protocol documentation. It is
+    originally contained in `protocol.txt`, part of the beanstalkd
+    distribution.) #doctest:+SKIP
+
+But besides `ready` and `reserved`, a job can also be `delayed` or `buried`.
+Those states also add more possibily transitions, so the full picture actually
+is:
+
+       put with delay               release with delay
+      ----------------> [DELAYED] <------------.
+                            |                   |
+                            | (time passes)     |
+                            |                   |
+       put                  v     reserve       |       delete
+      -----------------> [READY] ---------> [RESERVED] --------> *poof*
+                           ^  ^                |  |
+                           |   \  release      |  |
+                           |    `-------------'   |
+                           |                      |
+                           | kick                 |
+                           |                      |
+                           |       bury           |
+                        [BURIED] <---------------'
+                           |
+                           |  delete
+                            `--------> *poof*
+
+
+      (This picture was taken from beanstalkd's protocol documentation. It is
+      originally contained in `protocol.txt`, part of the beanstalkd
+      distribution.) #doctest:+SKIP
+
+Now let's have a practical look at those new possibilities. For a start, we can
+create a job with a delay. Such a job will only be available for reservation
+once this delay passes:
+
+    >>> beanstalk.put('yes!', delay=1)
+    3
+
+    >>> beanstalk.reserve(timeout=0) is None
+    True
+
+    >>> job = beanstalk.reserve(timeout=1)
+    >>> job.body
+    'yes!'
+
+If we are not interested in a job anymore (e.g. after we failed to
+process it), we can simply release the job back to the tube it came from:
+
+    >>> job.release()
+    >>> job.stats()['state']
+    'ready'
+
+Want to get rid of a job? Well, just "bury" it! A buried job is put aside and is
+therefore not available for reservation anymore:
+
+    >>> job = beanstalk.reserve()
+    >>> job.bury()
+    >>> job.stats()['state']
+    'buried'
+
+    >>> beanstalk.reserve(timeout=0) is None
+    True
+
+Buried jobs are maintained in a special FIFO-queue outside of the normal job
+processing lifecycle until they are kicked alive again.
+
+    >>> beanstalk.kick()
+    1
+
+You can request many jobs to be kicked alive at once, `kick`'s return value will
+tell you how many jobs were actually kicked alive again:
+
+    >>> beanstalk.kick(42)
+    0
+
+
+Inspecting Jobs
+---------------
+
+Besides reserving jobs, a client can also "peek" at jobs. This allows to inspect
+jobs without modifying their state. If you know the `id` of a job you're
+interested, you can directly peek at the job. We still have job #3 hanging
+around from our previous examples, so:
+
+    >>> job = beanstalk.peek(3)
+    >>> job.body
+    'yes!'
+
+Note that this peek did *not* reserve the job:
+
+    >>> job.stats()['state']
+    'ready'
+
+If you are not interested in a particular job, but want to see jobs according to
+their state, beanstalkd also provides a few commands. To peek at the same job
+that would be returned by `reserve` -- the next ready job -- use `peek-ready`:
+
+    >>> job = beanstalk.peek_ready()
+    >>> job.body
+    'yes!'
+
+Note that you can't delete, release, or bury a job that was not reserved by you.
+Those requests on unreserved jobs are silently ignored:
+
+    >>> job.delete()
+    >>> job.release()
+    >>> job.bury()
+
+    >>> job.stats()['state']
+    'ready'
+
+Finally, you can also peek into the special queues for jobs that are delayed
+...:
+
+    >>> beanstalk.put('o tempores', delay=120)
+    4
+    >>> job = beanstalk.peek_delayed()
+    >>> job.stats()['state']
+    'delayed'
+
+
+... or buried:
+
+    >>> beanstalk.put('o mores!')
+    5
+    >>> job = beanstalk.reserve()
+    >>> job.bury()
+
+    >>> job = beanstalk.peek_buried()
+    >>> job.stats()['state']
+    'buried'
