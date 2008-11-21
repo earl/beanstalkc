@@ -1,8 +1,16 @@
+Welcome, dear stranger, to a tour de force through beanstalkd's capabilities.
+Say hello to your fellow travel companion, the beanstalkc client library for
+Python. You'll get to know each other fairly well during this trip, so better
+start of on a friendly note. And now, let's go!
+
 Getting Started
 ---------------
 
+You'll need beanstalkd listening at port 14711 to follow along. So simply start
+it using: `beanstalkd -l localhost -p 147111`
+
 To use beanstalkc we have to import the library and set up a connection to a
-beanstalkd server:
+(already running) beanstalkd server:
 
     >>> import beanstalkc
     >>> beanstalk = beanstalkc.Connection(host='localhost', port=14711)
@@ -189,8 +197,8 @@ In "Basic Operation" above, we discussed the typical lifecycle of a job:
     distribution.) #doctest:+SKIP
 
 But besides `ready` and `reserved`, a job can also be `delayed` or `buried`.
-Those states also add more possibily transitions, so the full picture actually
-is:
+Along with those states come a few transitions, so the full picture looks liek
+the following:
 
        put with delay               release with delay
       ----------------> [DELAYED] <------------.
@@ -249,7 +257,7 @@ therefore not available for reservation anymore:
     True
 
 Buried jobs are maintained in a special FIFO-queue outside of the normal job
-processing lifecycle until they are kicked alive again.
+processing lifecycle until they are kicked alive again:
 
     >>> beanstalk.kick()
     1
@@ -296,15 +304,13 @@ Those requests on unreserved jobs are silently ignored:
     >>> job.stats()['state']
     'ready'
 
-Finally, you can also peek into the special queues for jobs that are delayed
-...:
+Finally, you can also peek into the special queues for jobs that are delayed:
 
     >>> beanstalk.put('o tempores', delay=120)
     4
     >>> job = beanstalk.peek_delayed()
     >>> job.stats()['state']
     'delayed'
-
 
 ... or buried:
 
@@ -316,3 +322,15 @@ Finally, you can also peek into the special queues for jobs that are delayed
     >>> job = beanstalk.peek_buried()
     >>> job.stats()['state']
     'buried'
+
+
+Fin!
+----
+
+That's it, for now. We've left a few capabilities untouched (touch, time-to-run
+and job priorities). But if you've really read through all of the above, send me
+a message and tell me what you think of it. And then go get yourself a treat.
+You certainly deserve it.
+
+
+-- Andreas Bolka, 2008-11
