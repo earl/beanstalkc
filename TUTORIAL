@@ -16,14 +16,14 @@ Basic Operation
 
 Now that we have a connection set up, we can enqueue jobs:
 
-    >>> beanstalk.put('foo')
+    >>> beanstalk.put('hey!')
     1
 
 Or we can request jobs:
 
     >>> job = beanstalk.reserve()
     >>> job.body
-    'foo'
+    'hey!'
 
 Once we are done with processing a job, we have to mark it as done, otherwise
 jobs are re-queued by beanstalkd after a "time to run" (120 seconds, per
@@ -57,7 +57,8 @@ tube "used" by the client. To see what tube you are currently using:
     >>> beanstalk.using()
     'default'
 
-And to use a different tube:
+Unless told otherwise, a client uses the 'default' tube. If you want to use a
+different tube:
 
     >>> beanstalk.use('foo')
     'foo'
@@ -69,6 +70,16 @@ created by beanstalkd:
 
     >>> beanstalk.tubes()
     ['default', 'foo']
+
+Of course, you can always switch back to the default tube. Tubes that don't have
+any client using or watching, vanish automatically:
+
+    >>> beanstalk.use('default')
+    'default'
+    >>> beanstalk.using()
+    'default'
+    >>> beanstalk.tubes()
+    ['default']
 
 Further, a beanstalkd client can choose many tubes to reserve jobs from. These
 tubes are "watched" by the client. To see what tubes you are currently watching:
@@ -87,19 +98,78 @@ As before, tubes that do not yet exist are created automatically once you start
 watching them:
 
     >>> beanstalk.tubes()
-    ['default', 'foo', 'bar']
+    ['default', 'bar']
 
 To stop watching a tube:
-
-    >>> beanstalk.ignore('default')
-    1
-    >>> beanstalk.watching()
-    ['bar']
-
-You can't watch zero tubes. So if you try to ignore the last tube you are
-watching, this is silently ignored:
 
     >>> beanstalk.ignore('bar')
     1
     >>> beanstalk.watching()
-    ['bar']
+    ['default']
+
+You can't watch zero tubes. So if you try to ignore the last tube you are
+watching, this is silently ignored:
+
+    >>> beanstalk.ignore('default')
+    1
+    >>> beanstalk.watching()
+    ['default']
+
+
+Statistics
+----------
+
+Beanstalkd accumulates various statistics at the server, tube and job level.
+Statistical details for a job can only be retrieved during the job's lifecycle.
+So let's create another job:
+
+    >>> beanstalk.put('ho?')
+    2
+
+    >>> job = beanstalk.reserve()
+
+Now we retrieve job-level statistics:
+
+    >>> from pprint import pprint
+    >>> pprint(job.stats())
+    {'age': 0,
+     'buries': 0,
+     'delay': 0,
+     'id': 2,
+     'kicks': 0,
+     'pri': 2147483648,
+     'releases': 0,
+     'state': 'reserved',
+     'time-left': 120,
+     'timeouts': 0,
+     'ttr': 120,
+     'tube': 'default'}
+
+If you try to access job stats after the job was deleted, you'll get a
+`CommandFailed` exception:
+
+    >>> job.delete()
+    >>> job.stats()
+    Traceback (most recent call last):
+    ...
+    CommandFailed: ('NOT_FOUND', [])
+
+Let's have a look at some numbers for the `'default'` tube:
+
+    >>> pprint(beanstalk.stats_tube('default'))
+    {'current-jobs-buried': 0,
+     'current-jobs-delayed': 0,
+     'current-jobs-ready': 0,
+     'current-jobs-reserved': 0,
+     'current-jobs-urgent': 0,
+     'current-using': 1,
+     'current-waiting': 0,
+     'current-watching': 1,
+     'name': 'default',
+     'total-jobs': 2}
+
+Finally, there's an abundant amount of server-level statistics accessible via
+the `Connection`'s `stats` method. We won't go into details here, but:
+
+    >>> len(beanstalk.stats())
+    40
