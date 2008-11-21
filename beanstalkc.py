@@ -5,7 +5,7 @@ class CommandFailed(Exception): pass
 class DeadlineSoon(Exception): pass
 
 class Connection(object):
-    def __init__(self, host='127.0.0.1', port=11300, decode_yaml=True):
+    def __init__(self, host='localhost', port=11300, decode_yaml=True):
         if decode_yaml:
             global yaml
             import yaml

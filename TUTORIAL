@@ -7,7 +7,7 @@ beanstalkd server:
     >>> import beanstalkc
     >>> beanstalk = beanstalkc.Connection(host='localhost', port=14711)
 
-If we leave out the `host` and/or `port` parameters, `'127.0.0.1'` and `11300`
+If we leave out the `host` and/or `port` parameters, `'localhost'` and `11300`
 would be used as defaults, respectively.
 
 
