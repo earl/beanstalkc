@@ -25,11 +25,11 @@ class DeadlineSoon(Exception): pass
 class Connection(object):
     def __init__(self, host='localhost', port=11300, decode_yaml=True):
         if decode_yaml:
-            global yaml
-            import yaml
+            self.yaml_load = __import__('yaml').load
+        else:
+            self.yaml_load = lambda x: x
         self.host = host
         self.port = port
-        self.decode_yaml = decode_yaml
         self.connect()
 
     def connect(self):
@@ -70,7 +70,7 @@ class Connection(object):
     def interact_yaml(self, command, expected_ok, expected_err=[]):
         [size] = self.interact(command, expected_ok, expected_err)
         body = self.read_body(int(size))
-        return yaml.load(body) if self.decode_yaml else body
+        return self.yaml_load(body)
 
     def interact_peek(self, command):
         try:
