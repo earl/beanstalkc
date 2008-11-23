@@ -62,20 +62,19 @@ class Connection(object):
     def interact_value(self, command, expected_ok, expected_err=[]):
         return self.interact(command, expected_ok, expected_err)[0]
 
-    def interact_job(self, command, expected_ok, expected_err):
+    def interact_job(self, command, expected_ok, expected_err, reserved=True):
         jid, size = self.interact(command, expected_ok, expected_err)
         body = self.read_body(int(size))
-        return jid, size, body
+        return Job(self, int(jid), body, reserved)
 
     def interact_yaml(self, command, expected_ok, expected_err=[]):
-        [size] = self.interact(command, expected_ok, expected_err)
+        size, = self.interact(command, expected_ok, expected_err)
         body = self.read_body(int(size))
         return self.yaml_load(body)
 
     def interact_peek(self, command):
         try:
-            jid, size, body = self.interact_job(command, 'FOUND', 'NOT_FOUND')
-            return Job(self, int(jid), body, False)
+            return self.interact_job(command, 'FOUND', 'NOT_FOUND', False)
         except CommandFailed, (status, results):
             return None
 
@@ -94,10 +93,9 @@ class Connection(object):
         else:
             command = 'reserve\r\n'
         try:
-            jid, size, body = self.interact_job(command,
-                                                'RESERVED',
-                                                ['DEADLINE_SOON', 'TIMED_OUT'])
-            return Job(self, int(jid), body, True)
+            return self.interact_job(command,
+                                     'RESERVED',
+                                     ['DEADLINE_SOON', 'TIMED_OUT'])
         except CommandFailed, (status, results):
             if status == 'TIMED_OUT':
                 return None
