@@ -176,9 +176,8 @@ class Job:
     # -- public interface --
 
     def delete(self):
-        if self.reserved:
-            self.conn.delete(self.jid)
-            self.reserved = False
+        self.conn.delete(self.jid)
+        self.reserved = False
 
     def release(self, priority=None, delay=0):
         if self.reserved:

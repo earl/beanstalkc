@@ -294,15 +294,22 @@ that would be returned by `reserve` -- the next ready job -- use `peek-ready`:
     >>> job.body
     'yes!'
 
-Note that you can't delete, release, or bury a job that was not reserved by you.
-Those requests on unreserved jobs are silently ignored:
+Note that you can't release, or bury a job that was not reserved by you. Those
+requests on unreserved jobs are silently ignored:
 
-    >>> job.delete()
     >>> job.release()
     >>> job.bury()
 
     >>> job.stats()['state']
     'ready'
+
+You can, though, delete a job that was not reserved by you:
+
+    >>> job.delete()
+    >>> job.stats()
+    Traceback (most recent call last):
+    ...
+    CommandFailed: ('NOT_FOUND', [])
 
 Finally, you can also peek into the special queues for jobs that are delayed:
 
