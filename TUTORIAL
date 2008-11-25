@@ -1,7 +1,7 @@
 Welcome, dear stranger, to a tour de force through beanstalkd's capabilities.
 Say hello to your fellow travel companion, the beanstalkc client library for
 Python. You'll get to know each other fairly well during this trip, so better
-start of on a friendly note. And now, let's go!
+start off on a friendly note. And now, let's go!
 
 Getting Started
 ---------------
@@ -9,7 +9,7 @@ Getting Started
 You'll need beanstalkd listening at port 14711 to follow along. So simply start
 it using: `beanstalkd -l localhost -p 147111`
 
-To use beanstalkc we have to import the library and set up a connection to a
+To use beanstalkc we have to import the library and set up a connection to an
 (already running) beanstalkd server:
 
     >>> import beanstalkc
