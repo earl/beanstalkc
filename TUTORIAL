@@ -179,8 +179,15 @@ Let's have a look at some numbers for the `'default'` tube:
 Finally, there's an abundant amount of server-level statistics accessible via
 the `Connection`'s `stats` method. We won't go into details here, but:
 
-    >>> len(beanstalk.stats())
-    40
+    >>> pprint(beanstalk.stats())
+    {...
+     'current-connections': 1,
+     'current-jobs-buried': 0,
+     'current-jobs-delayed': 0,
+     'current-jobs-ready': 0,
+     'current-jobs-reserved': 0,
+     'current-jobs-urgent': 0,
+     ...}
 
 
 Advanced Operation
