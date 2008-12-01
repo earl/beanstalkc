@@ -46,9 +46,9 @@ class Connection(object):
         if status in expected_ok:
             return results
         elif status in expected_err:
-            raise CommandFailed(status, results)
+            raise CommandFailed(command.split()[0], status, results)
         else:
-            raise UnexpectedResponse(status, results)
+            raise UnexpectedResponse(command.split()[0], status, results)
 
     def read_response(self):
         response = self.socket_file.readline().split()
@@ -75,7 +75,7 @@ class Connection(object):
     def interact_peek(self, command):
         try:
             return self.interact_job(command, ['FOUND'], ['NOT_FOUND'], False)
-        except CommandFailed, (status, results):
+        except CommandFailed, (_, status, results):
             return None
 
     # -- public interface --
@@ -96,7 +96,7 @@ class Connection(object):
             return self.interact_job(command,
                                      ['RESERVED'],
                                      ['DEADLINE_SOON', 'TIMED_OUT'])
-        except CommandFailed, (status, results):
+        except CommandFailed, (_, status, results):
             if status == 'TIMED_OUT':
                 return None
             elif status == 'DEADLINE_SOON':
