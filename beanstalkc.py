@@ -198,11 +198,11 @@ class Job:
 
 
 if __name__ == '__main__':
-    import doctest, time, os
+    import doctest, os, signal, time
     try:
         pid = os.spawnlp(os.P_NOWAIT,
                          'beanstalkd',
                          'beanstalkd', '-l', '127.0.0.1', '-p', '14711')
         doctest.testfile('TUTORIAL')
     finally:
-        os.kill(pid, 9)
+        os.kill(pid, signal.SIGTERM)
