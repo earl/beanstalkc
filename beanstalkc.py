@@ -81,6 +81,7 @@ class Connection(object):
     # -- public interface --
 
     def put(self, body, priority=2147483648, delay=0, ttr=120):
+        assert isinstance(body, str)
         jid = self.interact_value(
                 'put %d %d %d %d\r\n%s\r\n' %
                     (priority, delay, ttr, len(body), body),
