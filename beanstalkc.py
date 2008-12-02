@@ -17,13 +17,19 @@
 import socket
 
 
+DEFAULT_HOST = 'localhost'
+DEFAULT_PORT = 11300
+DEFAULT_PRIORITY = 2**31
+DEFAULT_TTR = 120
+
+
 class UnexpectedResponse(Exception): pass
 class CommandFailed(Exception): pass
 class DeadlineSoon(Exception): pass
 
 
 class Connection(object):
-    def __init__(self, host='localhost', port=11300, decode_yaml=True):
+    def __init__(self, host=DEFAULT_HOST, port=DEFAULT_PORT, decode_yaml=True):
         if decode_yaml:
             self.yaml_load = __import__('yaml').load
         else:
@@ -80,7 +86,7 @@ class Connection(object):
 
     # -- public interface --
 
-    def put(self, body, priority=2147483648, delay=0, ttr=120):
+    def put(self, body, priority=DEFAULT_PRIORITY, delay=0, ttr=DEFAULT_TTR):
         assert isinstance(body, str)
         jid = self.interact_value(
                 'put %d %d %d %d\r\n%s\r\n' %
