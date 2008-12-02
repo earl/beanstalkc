@@ -141,16 +141,11 @@ Now we retrieve job-level statistics:
     >>> from pprint import pprint
     >>> pprint(job.stats())
     {'age': 0,
-     'buries': 0,
-     'delay': 0,
+     ...
      'id': 2,
-     'kicks': 0,
-     'pri': 2147483648,
-     'releases': 0,
+     ...
      'state': 'reserved',
-     'time-left': 120,
-     'timeouts': 0,
-     'ttr': 120,
+     ...
      'tube': 'default'}
 
 If you try to access job stats after the job was deleted, you'll get a
