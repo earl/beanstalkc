@@ -26,9 +26,10 @@ DEFAULT_PRIORITY = 2**31
 DEFAULT_TTR = 120
 
 
-class UnexpectedResponse(Exception): pass
-class CommandFailed(Exception): pass
-class DeadlineSoon(Exception): pass
+class BeanstalkcException(Exception): pass
+class UnexpectedResponse(BeanstalkcException): pass
+class CommandFailed(BeanstalkcException): pass
+class DeadlineSoon(BeanstalkcException): pass
 
 
 class Connection(object):
