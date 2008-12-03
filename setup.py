@@ -1,8 +1,14 @@
 #!/usr/bin/env python
+import os
 from setuptools import setup
+from beanstalkc import __version__ as version
+
+git_version = os.popen('git describe --tags --abbrev=6').read().strip()[7:]
+pkg_version = version if not git_version else version + '.dev' + git_version
+
 setup(
     name='beanstalkc',
-    version='0.1.0',
+    version=pkg_version,
     py_modules=['beanstalkc'],
 
     author='Andreas Bolka',
