@@ -288,6 +288,11 @@ Note that this peek did *not* reserve the job:
     >>> job.stats()['state']
     'ready'
 
+If you try to peek at a non-existing job, you'll simply see nothing:
+
+    >>> beanstalk.peek(42) is None
+    True
+
 If you are not interested in a particular job, but want to see jobs according to
 their state, beanstalkd also provides a few commands. To peek at the same job
 that would be returned by `reserve` -- the next ready job -- use `peek-ready`:
@@ -335,6 +340,8 @@ Finally, you can also peek into the special queues for jobs that are delayed:
 
 Fin!
 ----
+
+    >>> beanstalk.close()
 
 That's it, for now. We've left a few capabilities untouched (touch, time-to-run
 and job priorities). But if you've really read through all of the above, send me
