@@ -217,7 +217,7 @@ class Job(object):
 
 
 if __name__ == '__main__':
-    import doctest, os, signal, time
+    import doctest, os, signal
     try:
         pid = os.spawnlp(os.P_NOWAIT,
                          'beanstalkd',
