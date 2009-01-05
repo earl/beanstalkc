@@ -185,7 +185,7 @@ class Connection(object):
                                   ['NOT_FOUND'])
 
 
-class Job:
+class Job(object):
     def __init__(self, conn, jid, body, reserved=True):
         self.conn = conn
         self.jid = jid
