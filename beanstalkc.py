@@ -52,9 +52,9 @@ class Connection(object):
     def close(self):
         self.socket.close()
 
-    def interact(self, command, expected_ok, expected_err=[]):
+    def _interact(self, command, expected_ok, expected_err=[]):
         self.socket.send(command)
-        status, results = self.read_response()
+        status, results = self._read_response()
         if status in expected_ok:
             return results
         elif status in expected_err:
@@ -62,31 +62,31 @@ class Connection(object):
         else:
             raise UnexpectedResponse(command.split()[0], status, results)
 
-    def read_response(self):
+    def _read_response(self):
         response = self.socket_file.readline().split()
         return response[0], response[1:]
 
-    def read_body(self, size):
+    def _read_body(self, size):
         body = self.socket_file.read(size)
         self.socket_file.read(2) # trailing crlf
         return body
 
-    def interact_value(self, command, expected_ok, expected_err=[]):
-        return self.interact(command, expected_ok, expected_err)[0]
+    def _interact_value(self, command, expected_ok, expected_err=[]):
+        return self._interact(command, expected_ok, expected_err)[0]
 
-    def interact_job(self, command, expected_ok, expected_err, reserved=True):
-        jid, size = self.interact(command, expected_ok, expected_err)
-        body = self.read_body(int(size))
+    def _interact_job(self, command, expected_ok, expected_err, reserved=True):
+        jid, size = self._interact(command, expected_ok, expected_err)
+        body = self._read_body(int(size))
         return Job(self, int(jid), body, reserved)
 
-    def interact_yaml(self, command, expected_ok, expected_err=[]):
-        size, = self.interact(command, expected_ok, expected_err)
-        body = self.read_body(int(size))
+    def _interact_yaml(self, command, expected_ok, expected_err=[]):
+        size, = self._interact(command, expected_ok, expected_err)
+        body = self._read_body(int(size))
         return self.yaml_load(body)
 
-    def interact_peek(self, command):
+    def _interact_peek(self, command):
         try:
-            return self.interact_job(command, ['FOUND'], ['NOT_FOUND'], False)
+            return self._interact_job(command, ['FOUND'], ['NOT_FOUND'], False)
         except CommandFailed, (_, status, results):
             return None
 
@@ -94,7 +94,7 @@ class Connection(object):
 
     def put(self, body, priority=DEFAULT_PRIORITY, delay=0, ttr=DEFAULT_TTR):
         assert isinstance(body, str)
-        jid = self.interact_value(
+        jid = self._interact_value(
                 'put %d %d %d %d\r\n%s\r\n' %
                     (priority, delay, ttr, len(body), body),
                 ['INSERTED', 'BURIED'])
@@ -106,9 +106,9 @@ class Connection(object):
         else:
             command = 'reserve\r\n'
         try:
-            return self.interact_job(command,
-                                     ['RESERVED'],
-                                     ['DEADLINE_SOON', 'TIMED_OUT'])
+            return self._interact_job(command,
+                                      ['RESERVED'],
+                                      ['DEADLINE_SOON', 'TIMED_OUT'])
         except CommandFailed, (_, status, results):
             if status == 'TIMED_OUT':
                 return None
@@ -116,73 +116,73 @@ class Connection(object):
                 raise DeadlineSoon(results)
 
     def kick(self, bound=1):
-        return int(self.interact_value('kick %d\r\n' % bound, ['KICKED']))
+        return int(self._interact_value('kick %d\r\n' % bound, ['KICKED']))
 
     def peek(self, jid):
-        return self.interact_peek('peek %d\r\n' % jid)
+        return self._interact_peek('peek %d\r\n' % jid)
 
     def peek_ready(self):
-        return self.interact_peek('peek-ready\r\n')
+        return self._interact_peek('peek-ready\r\n')
 
     def peek_delayed(self):
-        return self.interact_peek('peek-delayed\r\n')
+        return self._interact_peek('peek-delayed\r\n')
 
     def peek_buried(self):
-        return self.interact_peek('peek-buried\r\n')
+        return self._interact_peek('peek-buried\r\n')
 
     def tubes(self):
-        return self.interact_yaml('list-tubes\r\n', ['OK'])
+        return self._interact_yaml('list-tubes\r\n', ['OK'])
 
     def using(self):
-        return self.interact_value('list-tube-used\r\n', ['USING'])
+        return self._interact_value('list-tube-used\r\n', ['USING'])
 
     def use(self, name):
-        return self.interact_value('use %s\r\n' % name, ['USING'])
+        return self._interact_value('use %s\r\n' % name, ['USING'])
 
     def watching(self):
-        return self.interact_yaml('list-tubes-watched\r\n', ['OK'])
+        return self._interact_yaml('list-tubes-watched\r\n', ['OK'])
 
     def watch(self, name):
-        return int(self.interact_value('watch %s\r\n' % name, ['WATCHING']))
+        return int(self._interact_value('watch %s\r\n' % name, ['WATCHING']))
 
     def ignore(self, name):
         try:
-            return int(self.interact_value('ignore %s\r\n' % name,
-                                           ['WATCHING'],
-                                           ['NOT_IGNORED']))
+            return int(self._interact_value('ignore %s\r\n' % name,
+                                            ['WATCHING'],
+                                            ['NOT_IGNORED']))
         except CommandFailed:
             return 1
 
     def stats(self):
-        return self.interact_yaml('stats\r\n', ['OK'])
+        return self._interact_yaml('stats\r\n', ['OK'])
 
     def stats_tube(self, name):
-        return self.interact_yaml('stats-tube %s\r\n' % name,
+        return self._interact_yaml('stats-tube %s\r\n' % name,
                                   ['OK'],
                                   ['NOT_FOUND'])
 
     # -- job interactors --
 
     def delete(self, jid):
-        self.interact('delete %d\r\n' % jid, ['DELETED'])
+        self._interact('delete %d\r\n' % jid, ['DELETED'])
 
     def release(self, jid, priority=None, delay=0):
-        self.interact('release %d %d %d\r\n' % (jid, priority, delay),
-                      ['RELEASED', 'BURIED'],
-                      ['NOT_FOUND'])
+        self._interact('release %d %d %d\r\n' % (jid, priority, delay),
+                       ['RELEASED', 'BURIED'],
+                       ['NOT_FOUND'])
 
     def bury(self, jid, priority=None):
-        self.interact('bury %d %d\r\n' % (jid, priority),
-                      ['BURIED'],
-                      ['NOT_FOUND'])
+        self._interact('bury %d %d\r\n' % (jid, priority),
+                       ['BURIED'],
+                       ['NOT_FOUND'])
 
     def touch(self, jid):
-        self.interact('touch %d\r\n' % jid, ['TOUCHED'], ['NOT_FOUND'])
+        self._interact('touch %d\r\n' % jid, ['TOUCHED'], ['NOT_FOUND'])
 
     def stats_job(self, jid):
-        return self.interact_yaml('stats-job %d\r\n' % jid,
-                                  ['OK'],
-                                  ['NOT_FOUND'])
+        return self._interact_yaml('stats-job %d\r\n' % jid,
+                                   ['OK'],
+                                   ['NOT_FOUND'])
 
 
 class Job(object):
