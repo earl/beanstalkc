@@ -199,7 +199,7 @@ In "Basic Operation" above, we discussed the typical lifecycle of a job:
     distribution.) #doctest:+SKIP
 
 But besides `ready` and `reserved`, a job can also be `delayed` or `buried`.
-Along with those states come a few transitions, so the full picture looks liek
+Along with those states come a few transitions, so the full picture looks like
 the following:
 
        put with delay               release with delay
