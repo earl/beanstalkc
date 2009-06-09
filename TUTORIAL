@@ -7,7 +7,7 @@ Getting Started
 ---------------
 
 You'll need beanstalkd listening at port 14711 to follow along. So simply start
-it using: `beanstalkd -l localhost -p 14711`
+it using: `beanstalkd -l 127.0.0.1 -p 14711`
 
 To use beanstalkc we have to import the library and set up a connection to an
 (already running) beanstalkd server:
