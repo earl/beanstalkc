@@ -164,7 +164,7 @@ class Connection(object):
     # -- job interactors --
 
     def delete(self, jid):
-        self._interact('delete %d\r\n' % jid, ['DELETED'])
+        self._interact('delete %d\r\n' % jid, ['DELETED'], ['NOT_FOUND'])
 
     def release(self, jid, priority=None, delay=0):
         self._interact('release %d %d %d\r\n' % (jid, priority, delay),
