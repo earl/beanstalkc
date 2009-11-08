@@ -342,6 +342,49 @@ Finally, you can also peek into the special queues for jobs that are delayed:
     'buried'
 
 
+Job Priorities
+--------------
+
+Without job priorities, beanstalkd operates as a FIFO queue:
+
+    >>> _ = beanstalk.put('1')
+    >>> _ = beanstalk.put('2')
+
+    >>> job = beanstalk.reserve() ; print job.body ; job.delete()
+    1
+    >>> job = beanstalk.reserve() ; print job.body ; job.delete()
+    2
+
+If need arises, you can override this behaviour by giving different jobs
+different priorities. There are three hard facts to know about job priorities:
+
+  1. Jobs with lower priority numbers are reserved before jobs with higher
+  priority numbers.
+
+  2. beanstalkd priorities are 32-bit unsigned integers (they range from 0 to
+  2**32 - 1).
+
+  3. beanstalkc uses 2**31 as default job priority
+  (`beanstalkc.DEFAULT_PRIORITY`).
+
+To create a job with a custom priority, use the keyword-argument `priority`:
+
+    >>> _ = beanstalk.put('foo', priority=42)
+    >>> _ = beanstalk.put('bar', priority=21)
+    >>> _ = beanstalk.put('qux', priority=21)
+
+    >>> job = beanstalk.reserve() ; print job.body ; job.delete()
+    bar
+    >>> job = beanstalk.reserve() ; print job.body ; job.delete()
+    qux
+    >>> job = beanstalk.reserve() ; print job.body ; job.delete()
+    foo
+
+Note how `'bar'` and `'qux'` left the queue before `'foo'`, even though they
+were enqueued well after `'foo'`. Note also that within the same priority jobs
+are still handled in a FIFO manner.
+
+
 Fin!
 ----
 
