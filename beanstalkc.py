@@ -35,11 +35,11 @@ class DeadlineSoon(BeanstalkcException): pass
 
 
 class Connection(object):
-    def __init__(self, host=DEFAULT_HOST, port=DEFAULT_PORT, decode_yaml=True):
-        if decode_yaml:
-            self.yaml_load = __import__('yaml').load
+    def __init__(self, host=DEFAULT_HOST, port=DEFAULT_PORT, parse_yaml=True):
+        if parse_yaml:
+            self.parse_yaml = __import__('yaml').load
         else:
-            self.yaml_load = lambda x: x
+            self.parse_yaml = lambda x: x
         self.host = host
         self.port = port
         self.connect()
@@ -82,7 +82,7 @@ class Connection(object):
     def _interact_yaml(self, command, expected_ok, expected_err=[]):
         size, = self._interact(command, expected_ok, expected_err)
         body = self._read_body(int(size))
-        return self.yaml_load(body)
+        return self.parse_yaml(body)
 
     def _interact_peek(self, command):
         try:
