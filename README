@@ -1,7 +1,7 @@
 beanstalkc is a simple beanstalkd client library for Python. [beanstalkd][1] is
 a fast, distributed, in-memory workqueue service.
 
-beanstalkc depends on [PyYAML][2], but there are ways to this dependency.
+beanstalkc depends on [PyYAML][2], but there are ways to avoid this dependency.
 See Appendix A of the tutorial for details.
 
 [1]: http://kr.github.com/beanstalkd/
