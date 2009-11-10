@@ -18,7 +18,7 @@ setup(
     description='A simple beanstalkd client library',
     long_description='''
 beanstalkc is a simple beanstalkd client library for Python. `beanstalkd
-<http://xph.us/software/beanstalkd/>`_ is a fast, distributed, in-memory
+<http://kr.github.com/beanstalkd/>`_ is a fast, distributed, in-memory
 workqueue service.
 ''',
     url='http://github.com/earl/beanstalkc',
