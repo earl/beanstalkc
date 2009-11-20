@@ -53,7 +53,7 @@ class Connection(object):
         self.socket.close()
 
     def _interact(self, command, expected_ok, expected_err=[]):
-        self.socket.send(command)
+        self.socket.sendall(command)
         status, results = self._read_response()
         if status in expected_ok:
             return results
