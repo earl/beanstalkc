@@ -32,7 +32,14 @@ class BeanstalkcException(Exception): pass
 class UnexpectedResponse(BeanstalkcException): pass
 class CommandFailed(BeanstalkcException): pass
 class DeadlineSoon(BeanstalkcException): pass
-class SocketError(BeanstalkcException): pass
+
+class SocketError(BeanstalkcException):
+    @staticmethod
+    def wrap(fn, *args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except socket.error, e:
+            raise SocketError(e)
 
 
 class Connection(object):
@@ -47,14 +54,17 @@ class Connection(object):
 
     def connect(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.host, self.port))
+        SocketError.wrap(self.socket.connect, (self.host, self.port))
         self.socket_file = self.socket.makefile('rb')
 
     def close(self):
-        self.socket.close()
+        try:
+            self.socket.close()
+        except socket.error:
+            pass
 
     def _interact(self, command, expected_ok, expected_err=[]):
-        self.socket.sendall(command)
+        SocketError.wrap(self.socket.sendall, command)
         status, results = self._read_response()
         if status in expected_ok:
             return results
@@ -64,15 +74,15 @@ class Connection(object):
             raise UnexpectedResponse(command.split()[0], status, results)
 
     def _read_response(self):
-        line = self.socket_file.readline()
+        line = SocketError.wrap(self.socket_file.readline)
         if not line:
             raise SocketError()
         response = line.split()
         return response[0], response[1:]
 
     def _read_body(self, size):
-        body = self.socket_file.read(size)
-        self.socket_file.read(2) # trailing crlf
+        body = SocketError.wrap(self.socket_file.read, size)
+        SocketError.wrap(self.socket_file.read, 2) # trailing crlf
         if size > 0 and not body:
             raise SocketError()
         return body
