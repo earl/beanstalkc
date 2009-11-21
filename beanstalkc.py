@@ -32,6 +32,7 @@ class BeanstalkcException(Exception): pass
 class UnexpectedResponse(BeanstalkcException): pass
 class CommandFailed(BeanstalkcException): pass
 class DeadlineSoon(BeanstalkcException): pass
+class SocketError(BeanstalkcException): pass
 
 
 class Connection(object):
@@ -63,12 +64,17 @@ class Connection(object):
             raise UnexpectedResponse(command.split()[0], status, results)
 
     def _read_response(self):
-        response = self.socket_file.readline().split()
+        line = self.socket_file.readline()
+        if not line:
+            raise SocketError()
+        response = line.split()
         return response[0], response[1:]
 
     def _read_body(self, size):
         body = self.socket_file.read(size)
         self.socket_file.read(2) # trailing crlf
+        if size > 0 and not body:
+            raise SocketError()
         return body
 
     def _interact_value(self, command, expected_ok, expected_err=[]):
