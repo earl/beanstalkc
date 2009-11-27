@@ -424,6 +424,3 @@ when creating the `Connection`:
 This possibility is mostly useful if you don't use the introspective
 capabilities of beanstalkd (`Connection#tubes`, `Connection#watching`,
 `Connection#stats`, `Connection#stats_tube`, and `Job#stats`).
-
-
--- Andreas Bolka, 2008-11
