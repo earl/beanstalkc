@@ -411,7 +411,9 @@ If, for whatever reason, you cannot use PyYAML, you can still use beanstalkc
 and just leave the YAML responses unparsed. To do that, pass `parse_yaml=False`
 when creating the `Connection`:
 
-    >>> beanstalk = beanstalkc.Connection(host='localhost', port=14711, parse_yaml=False)
+    >>> beanstalk = beanstalkc.Connection(host='localhost',
+    ...                                   port=14711,
+    ...                                   parse_yaml=False)
 
     >>> beanstalk.tubes()
     '---\n- default\n'
