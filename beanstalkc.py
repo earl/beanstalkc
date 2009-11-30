@@ -51,24 +51,24 @@ class Connection(object):
             except ImportError:
                 logging.error('Failed to load PyYAML, will not parse YAML')
                 parse_yaml = False
-        self.parse_yaml = parse_yaml or (lambda x: x)
+        self._parse_yaml = parse_yaml or (lambda x: x)
         self.host = host
         self.port = port
         self.connect()
 
     def connect(self):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        SocketError.wrap(self.socket.connect, (self.host, self.port))
-        self.socket_file = self.socket.makefile('rb')
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        SocketError.wrap(self._socket.connect, (self.host, self.port))
+        self._socket_file = self._socket.makefile('rb')
 
     def close(self):
         try:
-            self.socket.close()
+            self._socket.close()
         except socket.error:
             pass
 
     def _interact(self, command, expected_ok, expected_err=[]):
-        SocketError.wrap(self.socket.sendall, command)
+        SocketError.wrap(self._socket.sendall, command)
         status, results = self._read_response()
         if status in expected_ok:
             return results
@@ -78,15 +78,15 @@ class Connection(object):
             raise UnexpectedResponse(command.split()[0], status, results)
 
     def _read_response(self):
-        line = SocketError.wrap(self.socket_file.readline)
+        line = SocketError.wrap(self._socket_file.readline)
         if not line:
             raise SocketError()
         response = line.split()
         return response[0], response[1:]
 
     def _read_body(self, size):
-        body = SocketError.wrap(self.socket_file.read, size)
-        SocketError.wrap(self.socket_file.read, 2) # trailing crlf
+        body = SocketError.wrap(self._socket_file.read, size)
+        SocketError.wrap(self._socket_file.read, 2) # trailing crlf
         if size > 0 and not body:
             raise SocketError()
         return body
@@ -102,7 +102,7 @@ class Connection(object):
     def _interact_yaml(self, command, expected_ok, expected_err=[]):
         size, = self._interact(command, expected_ok, expected_err)
         body = self._read_body(int(size))
-        return self.parse_yaml(body)
+        return self._parse_yaml(body)
 
     def _interact_peek(self, command):
         try:
