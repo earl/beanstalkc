@@ -181,6 +181,11 @@ class Connection(object):
                                   ['OK'],
                                   ['NOT_FOUND'])
 
+    def pause_tube(self, name, delay):
+        self._interact('pause-tube %s %d\r\n' %(name, delay),
+                       ['PAUSED'],
+                       ['NOT_FOUND'])
+
     # -- job interactors --
 
     def delete(self, jid):
