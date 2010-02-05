@@ -2,7 +2,7 @@
 """beanstalkc - A beanstalkd Client Library for Python"""
 
 __license__ = '''
-Copyright (C) 2008, 2009 Andreas Bolka
+Copyright (C) 2008-2010 Andreas Bolka
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
