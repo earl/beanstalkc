@@ -217,6 +217,12 @@ class Job(object):
         self.body = body
         self.reserved = reserved
 
+    def _priority(self):
+        stats = self.stats()
+        if isinstance(stats, dict):
+            return stats['pri']
+        return DEFAULT_PRIORITY
+
     # -- public interface --
 
     def delete(self):
@@ -225,12 +231,12 @@ class Job(object):
 
     def release(self, priority=None, delay=0):
         if self.reserved:
-            self.conn.release(self.jid, priority or self.stats()['pri'], delay)
+            self.conn.release(self.jid, priority or self._priority(), delay)
             self.reserved = False
 
     def bury(self, priority=None):
         if self.reserved:
-            self.conn.bury(self.jid, priority or self.stats()['pri'])
+            self.conn.bury(self.jid, priority or self._priority())
             self.reserved = False
 
     def touch(self):
