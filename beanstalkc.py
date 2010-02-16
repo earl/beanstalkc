@@ -63,6 +63,7 @@ class Connection(object):
 
     def close(self):
         try:
+            self._socket.sendall('quit\r\n')
             self._socket.close()
         except socket.error:
             pass
