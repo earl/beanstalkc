@@ -53,6 +53,14 @@ receive a job. If such a `reserve` times out, it will return `None`:
 If you use a timeout of 0, `reserve` will immediately return either a job or
 `None`.
 
+Note that beanstalkc requires job bodies to be strings, conversion to/from
+strings is left up to you:
+
+    >>> beanstalk.put(42)
+    Traceback (most recent call last):
+    ...
+    AssertionError: Job body must be a str instance
+
 
 Tube Management
 ---------------
