@@ -127,6 +127,17 @@ watching, this is silently ignored:
     >>> beanstalk.watching()
     ['default']
 
+To recap: each beanstalkd client manages two separate concerns: which tube
+newly created jobs are put into, and which tube(s) jobs are reserved from.
+Accordingly, there are two separate sets of functions for these concerns:
+
+  - `use` and `using` affect where jobs are `put`;
+  - `watch` and `watching` control where jobs are `reserve`d from.
+
+Note that these concerns are fully orthogonal: for example, when you `use` a
+tube, it is not automatically `watch`ed. Neither does `watch`ing a tube affect
+the tube you are `using`.
+
 
 Statistics
 ----------
