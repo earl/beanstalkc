@@ -52,11 +52,14 @@ class Connection(object):
                 logging.error('Failed to load PyYAML, will not parse YAML')
                 parse_yaml = False
         self._parse_yaml = parse_yaml or (lambda x: x)
+        self._socket = None
         self.host = host
         self.port = port
         self.connect()
 
     def connect(self):
+        if not self.closed:
+            return
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         SocketError.wrap(self._socket.connect, (self.host, self.port))
         self._socket_file = self._socket.makefile('rb')
@@ -67,6 +70,12 @@ class Connection(object):
             self._socket.close()
         except socket.error:
             pass
+        finally:
+            self._socket = None
+
+    @property
+    def closed(self):
+        return self._socket is None
 
     def _interact(self, command, expected_ok, expected_err=[], size_field=None):
         SocketError.wrap(self._socket.sendall, command)

@@ -24,6 +24,36 @@ Let's connect to this beanstalkd:
     >>> q = beanstalkc.Connection(port=14712)
 
 
+`Connection#closed`
+-------------------
+
+Observe that we are now connected:
+
+    >>> q.closed
+    False
+
+If we are connected, calling `Connection#connect` is a no-op:
+
+    >>> q.stats()['total-connections']
+    1
+
+    >>> q.connect()
+    >>> q.connect()
+    >>> q.connect()
+
+    >>> q.stats()['total-connections']
+    1
+
+_IMPORTANT NOTICE:_ The only guarantee regarding the `closed` attribute is that
+when `closed == True`, the `beanstalkc.Connection` was either explicitly closed
+or automatically closed due to socket errors. This means, that the `Connection`
+is definitely not connected in any sense (i.e. neither are the underlying
+Python `socket` or TCP connection). The observation that `closed == False` does
+_not_ imply the converse, i.e. the `Connection` is not necessarily connected.
+it typically only means that beanstalkc managed to successfully connect before
+and has not been explicitly closed or encountered any socket error since.
+
+
 Epilogue
 --------
 
