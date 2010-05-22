@@ -1,0 +1,32 @@
+Handling of network errors in beanstalkc
+========================================
+
+    >>> import os, signal, threading, time
+    >>> import beanstalkc
+
+To get things going, we'll need to have a beanstalkd running:
+
+    >>> def launch_beanstalkd():
+    ...     pid = os.spawnlp(os.P_NOWAIT,
+    ...                      'beanstalkd',
+    ...                      'beanstalkd', '-l', '127.0.0.1', '-p', '14712')
+    ...     time.sleep(1)
+    ...     return pid
+
+    >>> def kill_beanstalkd(pid):
+    ...     os.kill(pid, signal.SIGTERM)
+    ...     time.sleep(1)
+
+    >>> pid = launch_beanstalkd()
+
+Let's connect to this beanstalkd:
+
+    >>> q = beanstalkc.Connection(port=14712)
+
+
+Epilogue
+--------
+
+Let's ensure we don't have stray beanstalkd's hanging around:
+
+    >>> kill_beanstalkd(pid)
