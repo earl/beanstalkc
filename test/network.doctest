@@ -88,6 +88,12 @@ all underlying socket errors in `beanstalkc.SocketError`. And as basically all
 beanstalkc methods interact with the network this means that all methods may
 throw `SocketError`s.
 
+Finally, whitness that beanstalkc closes the connection if any socket errors
+occur:
+
+    >>> q.closed
+    True
+
 
 Epilogue
 --------

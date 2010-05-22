@@ -33,14 +33,7 @@ class BeanstalkcException(Exception): pass
 class UnexpectedResponse(BeanstalkcException): pass
 class CommandFailed(BeanstalkcException): pass
 class DeadlineSoon(BeanstalkcException): pass
-
-class SocketError(BeanstalkcException):
-    @staticmethod
-    def wrap(fn, *args, **kwargs):
-        try:
-            return fn(*args, **kwargs)
-        except socket.error, e:
-            raise SocketError(e)
+class SocketError(BeanstalkcException): pass
 
 
 class Connection(object):
@@ -60,9 +53,13 @@ class Connection(object):
     def connect(self):
         if not self.closed:
             return
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        SocketError.wrap(self._socket.connect, (self.host, self.port))
-        self._socket_file = self._socket.makefile('rb')
+        try:
+            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._socket.connect((self.host, self.port))
+            self._socket_file = self._socket.makefile('rb')
+        except socket.error, e:
+            self._socket = None
+            raise SocketError(e)
 
     def close(self):
         try:
@@ -78,29 +75,33 @@ class Connection(object):
         return self._socket is None
 
     def _interact(self, command, expected_ok, expected_err=[], size_field=None):
-        SocketError.wrap(self._socket.sendall, command)
-        status, results = self._read_response()
-        if status in expected_ok:
-            if size_field is not None:
-                results.append(self._read_body(int(results[size_field])))
-            return results
-        elif status in expected_err:
-            raise CommandFailed(command.split()[0], status, results)
-        else:
-            raise UnexpectedResponse(command.split()[0], status, results)
+        try:
+            self._socket.sendall(command)
+            status, results = self._read_response()
+            if status in expected_ok:
+                if size_field is not None:
+                    results.append(self._read_body(int(results[size_field])))
+                return results
+            elif status in expected_err:
+                raise CommandFailed(command.split()[0], status, results)
+            else:
+                raise UnexpectedResponse(command.split()[0], status, results)
+        except socket.error, e:
+            self.close()
+            raise SocketError(e)
 
     def _read_response(self):
-        line = SocketError.wrap(self._socket_file.readline)
+        line = self._socket_file.readline()
         if not line:
-            raise SocketError()
+            raise socket.error('no data read')
         response = line.split()
         return response[0], response[1:]
 
     def _read_body(self, size):
-        body = SocketError.wrap(self._socket_file.read, size)
-        SocketError.wrap(self._socket_file.read, 2) # trailing crlf
+        body = self._socket_file.read(size)
+        self._socket_file.read(2) # trailing crlf
         if size > 0 and not body:
-            raise SocketError()
+            raise socket.error('no data read')
         return body
 
     def _interact_value(self, command, expected_ok, expected_err=[]):
