@@ -54,6 +54,41 @@ it typically only means that beanstalkc managed to successfully connect before
 and has not been explicitly closed or encountered any socket error since.
 
 
+Socket errors
+-------------
+
+    >>> class SimpleWorker(threading.Thread):
+    ...     def __init__(self, conn):
+    ...         threading.Thread.__init__(self)
+    ...         self.conn = conn
+    ...     def run(self):
+    ...         try:
+    ...             self.result = self.conn.reserve()
+    ...         except beanstalkc.SocketError, e:
+    ...             self.error = e
+
+    >>> w = SimpleWorker(q)
+    >>> w.start()
+
+It may happen, that for whatever reason, the running beanstalkd dies:
+
+    >>> kill_beanstalkd(pid)
+
+This leads the pending `Connection#reserve` in our worker to throw a
+`beanstalkc.SocketError`:
+
+    >>> w.join()
+    >>> raise w.error
+    Traceback (most recent call last):
+    ...
+    SocketError...
+
+The same is true for all kinds of networking-related error: beanstalkc wraps
+all underlying socket errors in `beanstalkc.SocketError`. And as basically all
+beanstalkc methods interact with the network this means that all methods may
+throw `SocketError`s.
+
+
 Epilogue
 --------
 
