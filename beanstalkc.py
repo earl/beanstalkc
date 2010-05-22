@@ -68,10 +68,12 @@ class Connection(object):
         except socket.error:
             pass
 
-    def _interact(self, command, expected_ok, expected_err=[]):
+    def _interact(self, command, expected_ok, expected_err=[], size_field=None):
         SocketError.wrap(self._socket.sendall, command)
         status, results = self._read_response()
         if status in expected_ok:
+            if size_field is not None:
+                results.append(self._read_body(int(results[size_field])))
             return results
         elif status in expected_err:
             raise CommandFailed(command.split()[0], status, results)
@@ -96,13 +98,13 @@ class Connection(object):
         return self._interact(command, expected_ok, expected_err)[0]
 
     def _interact_job(self, command, expected_ok, expected_err, reserved=True):
-        jid, size = self._interact(command, expected_ok, expected_err)
-        body = self._read_body(int(size))
+        jid, _, body = self._interact(command, expected_ok, expected_err,
+                                      size_field=1)
         return Job(self, int(jid), body, reserved)
 
     def _interact_yaml(self, command, expected_ok, expected_err=[]):
-        size, = self._interact(command, expected_ok, expected_err)
-        body = self._read_body(int(size))
+        _, body, = self._interact(command, expected_ok, expected_err,
+                                  size_field=0)
         return self._parse_yaml(body)
 
     def _interact_peek(self, command):
