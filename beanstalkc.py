@@ -62,6 +62,8 @@ class Connection(object):
             raise SocketError(e)
 
     def close(self):
+        if self.closed:
+            return
         try:
             self._socket.sendall('quit\r\n')
             self._socket.close()
