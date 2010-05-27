@@ -61,11 +61,16 @@ Socket errors
     ...     def __init__(self, conn):
     ...         threading.Thread.__init__(self)
     ...         self.conn = conn
+    ...         self.sum = 0
     ...     def run(self):
     ...         try:
-    ...             self.result = self.conn.reserve()
+    ...             while True:
+    ...                 self.process(self.conn.reserve())
     ...         except beanstalkc.SocketError, e:
     ...             self.error = e
+    ...     def process(self, job):
+    ...         self.sum += int(job.body)
+    ...         job.delete()
 
     >>> w = SimpleWorker(q)
     >>> w.start()
