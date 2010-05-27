@@ -10,12 +10,12 @@ To get things going, we'll need to have a beanstalkd running:
     ...     pid = os.spawnlp(os.P_NOWAIT,
     ...                      'beanstalkd',
     ...                      'beanstalkd', '-l', '127.0.0.1', '-p', '14712')
-    ...     time.sleep(1)
+    ...     time.sleep(0.2) # Give beanstalkd some time to start up.
     ...     return pid
 
     >>> def kill_beanstalkd(pid):
     ...     os.kill(pid, signal.SIGTERM)
-    ...     time.sleep(1)
+    ...     time.sleep(0.2) # Also give beanstalkd some time to terminate.
 
     >>> pid = launch_beanstalkd()
 
