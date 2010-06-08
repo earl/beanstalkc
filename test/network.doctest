@@ -100,6 +100,109 @@ occur:
     True
 
 
+Basic Reconnect Idiom
+---------------------
+
+If we put the pieces described above together, we arrive at a pretty simple
+idiom for reconnecting on network errors:
+
+  1. `connect` before calling any method interacting over the network,
+
+  2. handle `SocketError`s to implement app-specific error recovery, command
+     retry logic, or reconnection throttling.
+
+A reconnecting worker may therefore look as follows:
+
+    >>> class ReconnectWorker(threading.Thread):                        # 01
+    ...     def __init__(self, conn):                                   # 02
+    ...         threading.Thread.__init__(self)                         # 03
+    ...         self.conn = conn                                        # 04
+    ...         self.stop = False                                       # 05
+    ...         self.sum = 0                                            # 06
+    ...     def run(self):                                              # 07
+    ...         while not self.stop:                                    # 08
+    ...             try:                                                # 09
+    ...                 self.conn.connect()                             # 10
+    ...                 self.process(self.conn.reserve())               # 11
+    ...             except beanstalkc.SocketError, e:                   # 12
+    ...                 time.sleep(0.1) # Throttle connection attempts  # 13
+    ...     def process(self, job):                                     # 14
+    ...         self.sum += int(job.body)                               # 15
+    ...         job.delete()                                            # 16
+
+In order to be able to adapt the above to different circumstances, it is
+important to understand what is going on in detail. As mentioned above,
+`Connection#connect` is only a no-op for connections which are not closed; it
+does not try to detect wether a connection is still alive. So what happens when
+e.g. beanstalkd goes down is:
+
+  1. beanstalkd goes down.
+
+  2. The connection `conn` is not yet `closed` (i.e. still connected),
+     therefore `connect` in line 10 does nothing.
+
+  3. `reserve` in line 11 tries to interact over the network. As beanstalkd
+     is down, the interaction will fail. This leads to the connection being
+     closed and a `SocketError` being raised.
+
+  4. The exception handler in lines 12-13 catches this `SocketError` and
+     ignores it. To not enter a tight loop of failed connection attempts,
+     line 13 suspends execution for a bit.
+
+  5. As soon as execution resumes, we loop back to line 10. As the connection
+     is now closed, `connect` will attempt to (re-)connect:
+
+    * If the connection attempt succeeds, operation is back to normal.
+      `reserve` in line 11 will block to fetch a job.
+
+    * If the conneciton attempt fails, another `SocketError` will be thrown,
+      looping back to step 4 or line 12-13, respectivel.
+
+While this basic reconnection strategy will be sufficient for many users, more
+advanced strategies are possible (such as limiting the total number of
+consecutive reconnection attempts, or an exponential back-off between
+attempts).
+
+Let's examine the behaviour of above `ReconnectWorker` with an example:
+
+    >>> pid = launch_beanstalkd()
+
+    >>> w = ReconnectWorker(q)
+    >>> w.start()
+
+    >>> p = beanstalkc.Connection(port=14712)
+    >>> _ = p.put('1')
+    >>> _ = p.put('2')
+    >>> p.close()
+    >>> time.sleep(0.5) # Give our worker some time to process.
+
+Now, if beanstalkd goes away, the running worker will be unaffected:
+
+    >>> kill_beanstalkd(pid)
+
+Instead, it will happily continue to work, once beanstalkd comes back up:
+
+    >>> pid = launch_beanstalkd()
+
+    >>> p = beanstalkc.Connection(port=14712)
+    >>> _ = p.put('3')
+    >>> _ = p.put('4')
+    >>> p.close()
+    >>> time.sleep(0.5) # Give our worker some time to process.
+
+And, after all is said and done, we shut down our machinery for good:
+
+    >>> kill_beanstalkd(pid)
+    >>> w.stop = True
+    >>> w.join()
+
+Our brave worker, having survived the disconnect between processing '2' and
+'3', will correctly tell us the sum of 1, 2, 3, and 4:
+
+    >>> print w.sum
+    10
+
+
 Epilogue
 --------
 
