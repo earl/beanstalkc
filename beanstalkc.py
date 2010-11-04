@@ -192,12 +192,12 @@ class Connection(object):
     def delete(self, jid):
         self._interact('delete %d\r\n' % jid, ['DELETED'], ['NOT_FOUND'])
 
-    def release(self, jid, priority=None, delay=0):
+    def release(self, jid, priority=DEFAULT_PRIORITY, delay=0):
         self._interact('release %d %d %d\r\n' % (jid, priority, delay),
                        ['RELEASED', 'BURIED'],
                        ['NOT_FOUND'])
 
-    def bury(self, jid, priority=None):
+    def bury(self, jid, priority=DEFAULT_PRIORITY):
         self._interact('bury %d %d\r\n' % (jid, priority),
                        ['BURIED'],
                        ['NOT_FOUND'])
