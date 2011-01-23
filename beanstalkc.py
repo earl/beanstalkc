@@ -125,9 +125,8 @@ class Connection(object):
         return int(jid)
 
     def reserve(self, timeout=None):
-        """Reserve a job from one of the watched tubes, with optional
-        timeout in seconds. Returns a Job object, or None if the
-        request times out."""
+        """Reserve a job from one of the watched tubes, with optional timeout in
+        seconds. Returns a Job object, or None if the request times out."""
         if timeout is not None:
             command = 'reserve-with-timeout %d\r\n' % timeout
         else:
@@ -226,8 +225,8 @@ class Connection(object):
                        ['NOT_FOUND'])
 
     def touch(self, jid):
-        """Touch a job, by job id, requesting more time to work on a
-        reserved job before it expires."""
+        """Touch a job, by job id, requesting more time to work on a reserved
+        job before it expires."""
         self._interact('touch %d\r\n' % jid, ['TOUCHED'], ['NOT_FOUND'])
 
     def stats_job(self, jid):
@@ -270,8 +269,8 @@ class Job(object):
             self.reserved = False
 
     def touch(self):
-        """Touch this reserved job, requesting more time to work on it
-        before it expires."""
+        """Touch this reserved job, requesting more time to work on it before it
+        expires."""
         if self.reserved:
             self.conn.touch(self.jid)
 
