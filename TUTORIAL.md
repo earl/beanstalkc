@@ -1,3 +1,6 @@
+beanstalkc tutorial
+============
+
 Welcome, dear stranger, to a tour de force through beanstalkd's capabilities.
 Say hello to your fellow travel companion, the beanstalkc client library for
 Python. You'll get to know each other fairly well during this trip, so better
@@ -61,6 +64,10 @@ strings is left up to you:
     ...
     AssertionError: Job body must be a str instance
 
+There is no restriction on what characters you can put in a job body, so they
+can be used to hold arbitrary binary data. If you want to send images, just
+`put` the image data as a string. If you want to send Unicode text, just use
+`unicode.encode` to convert it to a string with some encoding.
 
 Tube Management
 ---------------
