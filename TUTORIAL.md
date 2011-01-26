@@ -1,5 +1,5 @@
-beanstalkc tutorial
-============
+beanstalkc Tutorial
+===================
 
 Welcome, dear stranger, to a tour de force through beanstalkd's capabilities.
 Say hello to your fellow travel companion, the beanstalkc client library for
