@@ -285,7 +285,7 @@ if __name__ == '__main__':
         pid = os.spawnlp(os.P_NOWAIT,
                          'beanstalkd',
                          'beanstalkd', '-l', '127.0.0.1', '-p', '14711')
-        doctest.testfile('TUTORIAL.md', optionflags=doctest.ELLIPSIS)
+        doctest.testfile('TUTORIAL.mkd', optionflags=doctest.ELLIPSIS)
         doctest.testfile('test/no-yaml.doctest', optionflags=doctest.ELLIPSIS)
     finally:
         os.kill(pid, signal.SIGTERM)
