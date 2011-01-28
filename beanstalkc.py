@@ -27,7 +27,6 @@ DEFAULT_HOST = 'localhost'
 DEFAULT_PORT = 11300
 DEFAULT_PRIORITY = 2**31
 DEFAULT_TTR = 120
-DEFAULT_TIMEOUT = 1
 
 
 class BeanstalkcException(Exception): pass
@@ -46,7 +45,7 @@ class SocketError(BeanstalkcException):
 
 class Connection(object):
     def __init__(self, host=DEFAULT_HOST, port=DEFAULT_PORT, parse_yaml=True,
-                 connect_timeout=DEFAULT_TIMEOUT):
+                 connect_timeout=socket.getdefaulttimeout()):
         if parse_yaml is True:
             try:
                 parse_yaml = __import__('yaml').load
