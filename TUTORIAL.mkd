@@ -23,7 +23,10 @@ To use beanstalkc we have to import the library and set up a connection to an
     >>> beanstalk = beanstalkc.Connection(host='localhost', port=14711)
 
 If we leave out the `host` and/or `port` parameters, `'localhost'` and `11300`
-would be used as defaults, respectively.
+would be used as defaults, respectively. There is also a `connect_timeout`
+parameter which determines how long, in seconds, the socket will wait for the
+server to respond to its initial connection attempt. If it is `None`, then
+there will be no timeout; it defaults to 1.
 
 
 Basic Operation

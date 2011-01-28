@@ -44,13 +44,15 @@ class SocketError(BeanstalkcException):
 
 
 class Connection(object):
-    def __init__(self, host=DEFAULT_HOST, port=DEFAULT_PORT, parse_yaml=True):
+    def __init__(self, host=DEFAULT_HOST, port=DEFAULT_PORT, parse_yaml=True,
+                 connect_timeout=socket.getdefaulttimeout()):
         if parse_yaml is True:
             try:
                 parse_yaml = __import__('yaml').load
             except ImportError:
                 logging.error('Failed to load PyYAML, will not parse YAML')
                 parse_yaml = False
+        self._connect_timeout= connect_timeout
         self._parse_yaml = parse_yaml or (lambda x: x)
         self.host = host
         self.port = port
@@ -59,7 +61,9 @@ class Connection(object):
     def connect(self):
         """Connect to beanstalkd server."""
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._socket.settimeout(self._connect_timeout)
         SocketError.wrap(self._socket.connect, (self.host, self.port))
+        self._socket.settimeout(None)
         self._socket_file = self._socket.makefile('rb')
 
     def close(self):
