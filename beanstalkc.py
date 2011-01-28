@@ -57,11 +57,13 @@ class Connection(object):
         self.connect()
 
     def connect(self):
+        """Connect to beanstalkd server."""
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         SocketError.wrap(self._socket.connect, (self.host, self.port))
         self._socket_file = self._socket.makefile('rb')
 
     def close(self):
+        """Close connection to server."""
         try:
             self._socket.sendall('quit\r\n')
             self._socket.close()
@@ -114,6 +116,7 @@ class Connection(object):
     # -- public interface --
 
     def put(self, body, priority=DEFAULT_PRIORITY, delay=0, ttr=DEFAULT_TTR):
+        """Put a job into the current tube. Returns job id."""
         assert isinstance(body, str), 'Job body must be a str instance'
         jid = self._interact_value(
                 'put %d %d %d %d\r\n%s\r\n' %
@@ -122,6 +125,8 @@ class Connection(object):
         return int(jid)
 
     def reserve(self, timeout=None):
+        """Reserve a job from one of the watched tubes, with optional timeout
+        in seconds. Returns a Job object, or None if the request times out."""
         if timeout is not None:
             command = 'reserve-with-timeout %d\r\n' % timeout
         else:
@@ -137,36 +142,47 @@ class Connection(object):
                 raise DeadlineSoon(results)
 
     def kick(self, bound=1):
+        """Kick at most bound jobs into the ready queue."""
         return int(self._interact_value('kick %d\r\n' % bound, ['KICKED']))
 
     def peek(self, jid):
+        """Peek at a job. Returns a Job, or None."""
         return self._interact_peek('peek %d\r\n' % jid)
 
     def peek_ready(self):
+        """Peek at next ready job. Returns a Job, or None."""
         return self._interact_peek('peek-ready\r\n')
 
     def peek_delayed(self):
+        """Peek at next delayed job. Returns a Job, or None."""
         return self._interact_peek('peek-delayed\r\n')
 
     def peek_buried(self):
+        """Peek at next buried job. Returns a Job, or None."""
         return self._interact_peek('peek-buried\r\n')
 
     def tubes(self):
+        """Return a list of all existing tubes."""
         return self._interact_yaml('list-tubes\r\n', ['OK'])
 
     def using(self):
+        """Return a list of all tubes currently being used."""
         return self._interact_value('list-tube-used\r\n', ['USING'])
 
     def use(self, name):
+        """Use a given tube."""
         return self._interact_value('use %s\r\n' % name, ['USING'])
 
     def watching(self):
+        """Return a list of all tubes being watched."""
         return self._interact_yaml('list-tubes-watched\r\n', ['OK'])
 
     def watch(self, name):
+        """Watch a given tube."""
         return int(self._interact_value('watch %s\r\n' % name, ['WATCHING']))
 
     def ignore(self, name):
+        """Stop watching a given tube."""
         try:
             return int(self._interact_value('ignore %s\r\n' % name,
                                             ['WATCHING'],
@@ -175,14 +191,17 @@ class Connection(object):
             return 1
 
     def stats(self):
+        """Return a dict of beanstalkd statistics."""
         return self._interact_yaml('stats\r\n', ['OK'])
 
     def stats_tube(self, name):
+        """Return a dict of stats about a given tube."""
         return self._interact_yaml('stats-tube %s\r\n' % name,
                                   ['OK'],
                                   ['NOT_FOUND'])
 
     def pause_tube(self, name, delay):
+        """Pause a tube for a given delay time, in seconds."""
         self._interact('pause-tube %s %d\r\n' %(name, delay),
                        ['PAUSED'],
                        ['NOT_FOUND'])
@@ -190,22 +209,28 @@ class Connection(object):
     # -- job interactors --
 
     def delete(self, jid):
+        """Delete a job, by job id."""
         self._interact('delete %d\r\n' % jid, ['DELETED'], ['NOT_FOUND'])
 
     def release(self, jid, priority=DEFAULT_PRIORITY, delay=0):
+        """Release a reserved job back into the ready queue."""
         self._interact('release %d %d %d\r\n' % (jid, priority, delay),
                        ['RELEASED', 'BURIED'],
                        ['NOT_FOUND'])
 
     def bury(self, jid, priority=DEFAULT_PRIORITY):
+        """Bury a job, by job id."""
         self._interact('bury %d %d\r\n' % (jid, priority),
                        ['BURIED'],
                        ['NOT_FOUND'])
 
     def touch(self, jid):
+        """Touch a job, by job id, requesting more time to work on a reserved
+        job before it expires."""
         self._interact('touch %d\r\n' % jid, ['TOUCHED'], ['NOT_FOUND'])
 
     def stats_job(self, jid):
+        """Return a dict of stats about a job, by job id."""
         return self._interact_yaml('stats-job %d\r\n' % jid,
                                    ['OK'],
                                    ['NOT_FOUND'])
@@ -227,24 +252,30 @@ class Job(object):
     # -- public interface --
 
     def delete(self):
+        """Delete this job."""
         self.conn.delete(self.jid)
         self.reserved = False
 
     def release(self, priority=None, delay=0):
+        """Release this job back into the ready queue."""
         if self.reserved:
             self.conn.release(self.jid, priority or self._priority(), delay)
             self.reserved = False
 
     def bury(self, priority=None):
+        """Bury this job."""
         if self.reserved:
             self.conn.bury(self.jid, priority or self._priority())
             self.reserved = False
 
     def touch(self):
+        """Touch this reserved job, requesting more time to work on it before
+        it expires."""
         if self.reserved:
             self.conn.touch(self.jid)
 
     def stats(self):
+        """Return a dict of stats about this job."""
         return self.conn.stats_job(self.jid)
 
 
@@ -254,7 +285,7 @@ if __name__ == '__main__':
         pid = os.spawnlp(os.P_NOWAIT,
                          'beanstalkd',
                          'beanstalkd', '-l', '127.0.0.1', '-p', '14711')
-        doctest.testfile('TUTORIAL', optionflags=doctest.ELLIPSIS)
+        doctest.testfile('TUTORIAL.mkd', optionflags=doctest.ELLIPSIS)
         doctest.testfile('test/no-yaml.doctest', optionflags=doctest.ELLIPSIS)
     finally:
         os.kill(pid, signal.SIGTERM)

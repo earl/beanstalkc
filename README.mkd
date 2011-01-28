@@ -1,0 +1,41 @@
+beanstalkc
+==========
+
+beanstalkc is a simple beanstalkd client library for Python. [beanstalkd][] is
+a fast, distributed, in-memory workqueue service.
+
+beanstalkc depends on [PyYAML][], but there are ways to avoid this dependency.
+See Appendix A of the tutorial for details.
+
+beanstalkc is pure Python, and is compatible with [eventlet][] and [gevent][].
+
+[beanstalkd]: http://kr.github.com/beanstalkd/
+[eventlet]: http://eventlet.net/
+[gevent]: http://www.gevent.org/
+[pyyaml]: http://pyyaml.org/
+
+
+Usage
+-----
+
+Here is a short example, to illustrate the flavor of beanstalkc:
+
+    >>> import beanstalkc
+    >>> beanstalk = beanstalkc.Connection(host='localhost', port=11300)
+    >>> beanstalk.put('hey!')
+    1
+    >>> job = beanstalk.reserve()
+    >>> job.body
+    'hey!'
+    >>> job.delete()
+
+For more information, see `TUTORIAL.md`, which will explain most everything.
+
+
+License
+-------
+
+Copyright (C) 2008-2010 Andreas Bolka, Licensed under the [Apache License,
+Version 2.0][license].
+
+[license]: http://www.apache.org/licenses/LICENSE-2.0
