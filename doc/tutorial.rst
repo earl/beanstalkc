@@ -1,3 +1,6 @@
+.. @@ link to classes
+.. @@ link to methods
+
 beanstalkc Tutorial
 ===================
 
@@ -6,38 +9,41 @@ Say hello to your fellow travel companion, the beanstalkc client library for
 Python. You'll get to know each other fairly well during this trip, so better
 start off on a friendly note. And now, let's go!
 
+
 Getting Started
 ---------------
 
 You'll need beanstalkd listening at port 14711 to follow along. So simply start
-it using: `beanstalkd -l 127.0.0.1 -p 14711`
+it using::
+
+    beanstalkd -l 127.0.0.1 -p 14711
 
 Besides having beanstalkc installed, you'll typically also need PyYAML. If you
 insist, you can also use beanstalkc without PyYAML. For more details see
-Appendix A of this tutorial.
+:ref:`Appendix A <tut-appendix-a>` of this tutorial.
 
 To use beanstalkc we have to import the library and set up a connection to an
-(already running) beanstalkd server:
+(already running) beanstalkd server::
 
     >>> import beanstalkc
     >>> beanstalk = beanstalkc.Connection(host='localhost', port=14711)
 
-If we leave out the `host` and/or `port` parameters, `'localhost'` and `11300`
-would be used as defaults, respectively. There is also a `connect_timeout`
-parameter which determines how long, in seconds, the socket will wait for the
-server to respond to its initial connection attempt. If it is `None`, then
-there will be no timeout; it defaults to 1.
+If we leave out the ``host`` and/or ``port`` parameters, ``'localhost'`` and
+``11300`` would be used as defaults, respectively. There is also a
+``connect_timeout`` parameter which determines how long, in seconds, the socket
+will wait for the server to respond to its initial connection attempt. If it is
+``None`` then there will be no timeout; it defaults to ``1``.
 
 
 Basic Operation
 ---------------
 
-Now that we have a connection set up, we can enqueue jobs:
+Now that we have a connection set up, we can enqueue jobs::
 
     >>> beanstalk.put('hey!')
     1
 
-Or we can request jobs:
+Or we can request jobs::
 
     >>> job = beanstalk.reserve()
     >>> job.body
@@ -45,22 +51,23 @@ Or we can request jobs:
 
 Once we are done with processing a job, we have to mark it as done, otherwise
 jobs are re-queued by beanstalkd after a "time to run" (120 seconds, per
-default) is surpassed. A job is marked as done, by calling `delete`:
+default) is surpassed. A job is marked as done, by calling ``delete``::
 
     >>> job.delete()
 
-`reserve` blocks until a job is ready, possibly forever. If that is not desired,
-we can invoke `reserve` with a timeout (in seconds) how long we want to wait to
-receive a job. If such a `reserve` times out, it will return `None`:
+``reserve`` blocks until a job is ready, possibly forever. If that is not
+desired, we can invoke ``reserve`` with a timeout (in seconds) how long we want
+to wait to receive a job. If such a ``reserve`` times out, it will return
+``None``::
 
     >>> beanstalk.reserve(timeout=0) is None
     True
 
-If you use a timeout of 0, `reserve` will immediately return either a job or
-`None`.
+If you use a timeout of 0, ``reserve`` will immediately return either a job or
+``None``.
 
 Note that beanstalkc requires job bodies to be strings, conversion to/from
-strings is left up to you:
+strings is left up to you::
 
     >>> beanstalk.put(42)
     Traceback (most recent call last):
@@ -69,26 +76,27 @@ strings is left up to you:
 
 There is no restriction on what characters you can put in a job body, so they
 can be used to hold arbitrary binary data. If you want to send images, just
-`put` the image data as a string. If you want to send Unicode text, just use
-`unicode.encode` to convert it to a string with some encoding.
+``put`` the image data as a string. If you want to send Unicode text, just use
+``unicode.encode`` to convert it to a string with some encoding.
+
 
 Tube Management
 ---------------
 
 A single beanstalkd server can provide many different queues, called "tubes" in
-beanstalkd. To see all available tubes:
+beanstalkd. To see all available tubes::
 
     >>> beanstalk.tubes()
     ['default']
 
 A beanstalkd client can choose one tube into which its job are put. This is the
-tube "used" by the client. To see what tube you are currently using:
+tube "used" by the client. To see what tube you are currently using::
 
     >>> beanstalk.using()
     'default'
 
 Unless told otherwise, a client uses the 'default' tube. If you want to use a
-different tube:
+different tube::
 
     >>> beanstalk.use('foo')
     'foo'
@@ -96,13 +104,13 @@ different tube:
     'foo'
 
 If you decide to use a tube, that does not yet exist, the tube is automatically
-created by beanstalkd:
+created by beanstalkd::
 
     >>> beanstalk.tubes()
     ['default', 'foo']
 
 Of course, you can always switch back to the default tube. Tubes that don't have
-any client using or watching, vanish automatically:
+any client using or watching, vanish automatically::
 
     >>> beanstalk.use('default')
     'default'
@@ -112,12 +120,13 @@ any client using or watching, vanish automatically:
     ['default']
 
 Further, a beanstalkd client can choose many tubes to reserve jobs from. These
-tubes are "watched" by the client. To see what tubes you are currently watching:
+tubes are "watched" by the client. To see what tubes you are currently
+watching::
 
     >>> beanstalk.watching()
     ['default']
 
-To watch an additional tube:
+To watch an additional tube::
 
     >>> beanstalk.watch('bar')
     2
@@ -125,12 +134,12 @@ To watch an additional tube:
     ['default', 'bar']
 
 As before, tubes that do not yet exist are created automatically once you start
-watching them:
+watching them::
 
     >>> beanstalk.tubes()
     ['default', 'bar']
 
-To stop watching a tube:
+To stop watching a tube::
 
     >>> beanstalk.ignore('bar')
     1
@@ -138,7 +147,7 @@ To stop watching a tube:
     ['default']
 
 You can't watch zero tubes. So if you try to ignore the last tube you are
-watching, this is silently ignored:
+watching, this is silently ignored::
 
     >>> beanstalk.ignore('default')
     1
@@ -149,12 +158,12 @@ To recap: each beanstalkd client manages two separate concerns: which tube
 newly created jobs are put into, and which tube(s) jobs are reserved from.
 Accordingly, there are two separate sets of functions for these concerns:
 
-  - `use` and `using` affect where jobs are `put`;
-  - `watch` and `watching` control where jobs are `reserve`d from.
+- ``use`` and ``using`` affect where ``put`` places jobs;
+- ``watch`` and ``watching`` control where ``reserve`` takes jobs from.
 
-Note that these concerns are fully orthogonal: for example, when you `use` a
-tube, it is not automatically `watch`ed. Neither does `watch`ing a tube affect
-the tube you are `using`.
+Note that these concerns are fully orthogonal: for example, when you ``use`` a
+tube, it is not automatically ``watch``-ed. Neither does ``watch``-ing a tube
+affect the tube you are ``using``.
 
 
 Statistics
@@ -162,14 +171,14 @@ Statistics
 
 Beanstalkd accumulates various statistics at the server, tube and job level.
 Statistical details for a job can only be retrieved during the job's lifecycle.
-So let's create another job:
+So let's create another job::
 
     >>> beanstalk.put('ho?')
     2
 
     >>> job = beanstalk.reserve()
 
-Now we retrieve job-level statistics:
+Now we retrieve job-level statistics::
 
     >>> from pprint import pprint
     >>> pprint(job.stats())
@@ -182,7 +191,7 @@ Now we retrieve job-level statistics:
      'tube': 'default'}
 
 If you try to access job stats after the job was deleted, you'll get a
-`CommandFailed` exception:
+``CommandFailed`` exception::
 
     >>> job.delete()
     >>> job.stats()
@@ -190,7 +199,7 @@ If you try to access job stats after the job was deleted, you'll get a
     ...
     CommandFailed: ('stats-job', 'NOT_FOUND', [])
 
-Let's have a look at some numbers for the `'default'` tube:
+Let's have a look at some numbers for the ``'default'`` tube::
 
     >>> pprint(beanstalk.stats_tube('default'))
     {...
@@ -202,7 +211,7 @@ Let's have a look at some numbers for the `'default'` tube:
      ...}
 
 Finally, there's an abundant amount of server-level statistics accessible via
-the `Connection`'s `stats` method. We won't go into details here, but:
+the ``Connection``'s ``stats`` method. We won't go into details here, but::
 
     >>> pprint(beanstalk.stats())
     {...
@@ -218,19 +227,19 @@ the `Connection`'s `stats` method. We won't go into details here, but:
 Advanced Operation
 ------------------
 
-In "Basic Operation" above, we discussed the typical lifecycle of a job:
+In "Basic Operation" above, we discussed the typical lifecycle of a job::
 
-     put            reserve               delete
-    -----> [READY] ---------> [RESERVED] --------> *poof*
+       put            reserve               delete
+      -----> [READY] ---------> [RESERVED] --------> *poof*
 
 
-    (This picture was taken from beanstalkd's protocol documentation. It is
-    originally contained in `protocol.txt`, part of the beanstalkd
-    distribution.) #doctest:+SKIP
+    (This illustration was taken from beanstalkd's protocol
+    documentation. It is originally contained in ``protocol.txt``,
+    part of the beanstalkd distribution.) #doctest:+SKIP
 
-But besides `ready` and `reserved`, a job can also be `delayed` or `buried`.
-Along with those states come a few transitions, so the full picture looks like
-the following:
+But besides ``ready`` and ``reserved``, a job can also be ``delayed`` or
+``buried``. Along with those states come a few transitions, so the full picture
+looks like the following::
 
        put with delay               release with delay
       ----------------> [DELAYED] <------------.
@@ -241,7 +250,7 @@ the following:
       -----------------> [READY] ---------> [RESERVED] --------> *poof*
                            ^  ^                |  |
                            |   \  release      |  |
-                           |    `-------------'   |
+                           |    ``-------------'   |
                            |                      |
                            | kick                 |
                            |                      |
@@ -249,16 +258,17 @@ the following:
                         [BURIED] <---------------'
                            |
                            |  delete
-                            `--------> *poof*
+                            ``--------> *poof*
 
 
-      (This picture was taken from beanstalkd's protocol documentation. It is
-      originally contained in `protocol.txt`, part of the beanstalkd
-      distribution.) #doctest:+SKIP
+
+    (This illustration was taken from beanstalkd's protocol
+    documentation. It is originally contained in ``protocol.txt``,
+    part of the beanstalkd distribution.) #doctest:+SKIP
 
 Now let's have a practical look at those new possibilities. For a start, we can
 create a job with a delay. Such a job will only be available for reservation
-once this delay passes:
+once this delay passes::
 
     >>> beanstalk.put('yes!', delay=1)
     3
@@ -270,15 +280,15 @@ once this delay passes:
     >>> job.body
     'yes!'
 
-If we are not interested in a job anymore (e.g. after we failed to
-process it), we can simply release the job back to the tube it came from:
+If we are not interested in a job anymore (e.g. after we failed to process it),
+we can simply release the job back to the tube it came from::
 
     >>> job.release()
     >>> job.stats()['state']
     'ready'
 
-Want to get rid of a job? Well, just "bury" it! A buried job is put aside and is
-therefore not available for reservation anymore:
+Want to get rid of a job? Well, just "bury" it! A buried job is put aside and
+is therefore not available for reservation anymore::
 
     >>> job = beanstalk.reserve()
     >>> job.bury()
@@ -289,13 +299,13 @@ therefore not available for reservation anymore:
     True
 
 Buried jobs are maintained in a special FIFO-queue outside of the normal job
-processing lifecycle until they are kicked alive again:
+processing lifecycle until they are kicked alive again::
 
     >>> beanstalk.kick()
     1
 
-You can request many jobs to be kicked alive at once, `kick`'s return value will
-tell you how many jobs were actually kicked alive again:
+You can request many jobs to be kicked alive at once, ``kick``'s return value
+will tell you how many jobs were actually kicked alive again::
 
     >>> beanstalk.kick(42)
     0
@@ -304,35 +314,36 @@ tell you how many jobs were actually kicked alive again:
 Inspecting Jobs
 ---------------
 
-Besides reserving jobs, a client can also "peek" at jobs. This allows to inspect
-jobs without modifying their state. If you know the `id` of a job you're
-interested, you can directly peek at the job. We still have job #3 hanging
-around from our previous examples, so:
+Besides reserving jobs, a client can also "peek" at jobs. This allows to
+inspect jobs without modifying their state. If you know the ``id`` of a job
+you're interested, you can directly peek at the job. We still have job #3
+hanging around from our previous examples, so::
 
     >>> job = beanstalk.peek(3)
     >>> job.body
     'yes!'
 
-Note that this peek did *not* reserve the job:
+Note that this peek did *not* reserve the job::
 
     >>> job.stats()['state']
     'ready'
 
-If you try to peek at a non-existing job, you'll simply see nothing:
+If you try to peek at a non-existing job, you'll simply see nothing::
 
     >>> beanstalk.peek(42) is None
     True
 
-If you are not interested in a particular job, but want to see jobs according to
-their state, beanstalkd also provides a few commands. To peek at the same job
-that would be returned by `reserve` -- the next ready job -- use `peek-ready`:
+If you are not interested in a particular job, but want to see jobs according
+to their state, beanstalkd also provides a few commands. To peek at the same
+job that would be returned by ``reserve`` (i.e. the next ready job) use
+``peek-ready``::
 
     >>> job = beanstalk.peek_ready()
     >>> job.body
     'yes!'
 
 Note that you can't release, or bury a job that was not reserved by you. Those
-requests on unreserved jobs are silently ignored:
+requests on unreserved jobs are silently ignored::
 
     >>> job.release()
     >>> job.bury()
@@ -340,7 +351,7 @@ requests on unreserved jobs are silently ignored:
     >>> job.stats()['state']
     'ready'
 
-You can, though, delete a job that was not reserved by you:
+You can, though, delete a job that was not reserved by you::
 
     >>> job.delete()
     >>> job.stats()
@@ -348,7 +359,7 @@ You can, though, delete a job that was not reserved by you:
     ...
     CommandFailed: ('stats-job', 'NOT_FOUND', [])
 
-Finally, you can also peek into the special queues for jobs that are delayed:
+Finally, you can also peek into the special queues for jobs that are delayed::
 
     >>> beanstalk.put('o tempores', delay=120)
     4
@@ -356,7 +367,7 @@ Finally, you can also peek into the special queues for jobs that are delayed:
     >>> job.stats()['state']
     'delayed'
 
-... or buried:
+... or buried::
 
     >>> beanstalk.put('o mores!')
     5
@@ -371,7 +382,7 @@ Finally, you can also peek into the special queues for jobs that are delayed:
 Job Priorities
 --------------
 
-Without job priorities, beanstalkd operates as a FIFO queue:
+Without job priorities, beanstalkd operates as a FIFO queue::
 
     >>> _ = beanstalk.put('1')
     >>> _ = beanstalk.put('2')
@@ -384,16 +395,16 @@ Without job priorities, beanstalkd operates as a FIFO queue:
 If need arises, you can override this behaviour by giving different jobs
 different priorities. There are three hard facts to know about job priorities:
 
-  1. Jobs with lower priority numbers are reserved before jobs with higher
-  priority numbers.
+#. Jobs with lower priority numbers are reserved before jobs with higher
+   priority numbers.
 
-  2. beanstalkd priorities are 32-bit unsigned integers (they range from 0 to
-  2**32 - 1).
+#. beanstalkd priorities are 32-bit unsigned integers (they range from 0 to
+   2**32 - 1).
 
-  3. beanstalkc uses 2**31 as default job priority
-  (`beanstalkc.DEFAULT_PRIORITY`).
+#. beanstalkc uses 2**31 as default job priority
+   (``beanstalkc.DEFAULT_PRIORITY``).
 
-To create a job with a custom priority, use the keyword-argument `priority`:
+To create a job with a custom priority, use the keyword-argument ``priority``::
 
     >>> _ = beanstalk.put('foo', priority=42)
     >>> _ = beanstalk.put('bar', priority=21)
@@ -406,13 +417,15 @@ To create a job with a custom priority, use the keyword-argument `priority`:
     >>> job = beanstalk.reserve() ; print job.body ; job.delete()
     foo
 
-Note how `'bar'` and `'qux'` left the queue before `'foo'`, even though they
-were enqueued well after `'foo'`. Note also that within the same priority jobs
-are still handled in a FIFO manner.
+Note how ``'bar'`` and ``'qux'`` left the queue before ``'foo'``, even though
+they were enqueued well after ``'foo'``. Note also that within the same
+priority jobs are still handled in a FIFO manner.
 
 
 Fin!
 ----
+
+::
 
     >>> beanstalk.close()
 
@@ -422,20 +435,26 @@ message and tell me what you think of it. And then go get yourself a treat. You
 certainly deserve it.
 
 
+.. _tut-appendix-a:
+
 Appendix A: beanstalkc and YAML
 -------------------------------
 
+.. @@ link to methods
+
 As beanstalkd uses YAML for diagnostic information (like the results of
-`stats()` or `tubes()`), you'll typically need [PyYAML](). Depending on your
-performance needs, you may want to supplement that with the [libyaml]() C
+``stats()`` or ``tubes()``), you'll typically need `PyYAML`_. Depending on your
+performance needs, you may want to supplement that with the `libyaml`_ C
 extension.
 
-[PyYAML]: http://pyyaml.org/
-[libyaml]: http://pyyaml.org/wiki/LibYAML
+.. _PyYAML: http://pyyaml.org/
+.. _libyaml: http://pyyaml.org/wiki/LibYAML
+
+.. @@ link to Conection
 
 If, for whatever reason, you cannot use PyYAML, you can still use beanstalkc
-and just leave the YAML responses unparsed. To do that, pass `parse_yaml=False`
-when creating the `Connection`:
+and just leave the YAML responses unparsed. To do that, pass
+``parse_yaml=False`` when creating the ``Connection``::
 
     >>> beanstalk = beanstalkc.Connection(host='localhost',
     ...                                   port=14711,
@@ -445,15 +464,17 @@ when creating the `Connection`:
     '---\n- default\n'
 
     >>> beanstalk.stats_tube('default')
-    '---\nname: default\ncurrent-jobs-urgent: 0\ncurrent-jobs-ready: 0\n...'
+    '---\nname: default\ncurrent-jobs-urgent: 0\n...'
 
     >>> beanstalk.close()
 
-This possibility is mostly useful if you don't use the introspective
-capabilities of beanstalkd (`Connection#tubes`, `Connection#watching`,
-`Connection#stats`, `Connection#stats_tube`, and `Job#stats`).
+.. @@ link to methods
 
-Alternatively, you can also pass a function to be used as YAML parser:
+This possibility is mostly useful if you don't use the introspective
+capabilities of beanstalkd (``Connection#tubes``, ``Connection#watching``,
+``Connection#stats``, ``Connection#stats_tube``, and ``Job#stats``).
+
+Alternatively, you can also pass a function to be used as YAML parser::
 
     >>> beanstalk = beanstalkc.Connection(host='localhost',
     ...                                   port=14711,

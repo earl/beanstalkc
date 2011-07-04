@@ -32,7 +32,7 @@ Here is a short example, to illustrate the flavor of beanstalkc:
 For more information, see [the tutorial][tutorial], which will explain most
 everything.
 
-[tutorial]: TUTORIAL.mkd
+[tutorial]: doc/TUTORIAL.rst
 
 
 License
