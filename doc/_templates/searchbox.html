@@ -1,0 +1,48 @@
+{#
+    basic/searchbox.html
+    ~~~~~~~~~~~~~~~~~~~~
+
+    Sphinx sidebar template: quick search box.
+
+    :copyright: Copyright 2007-2011 by the Sphinx team, see AUTHORS.
+    :license: BSD, see LICENSE for details.
+#}
+{#
+    Customised to show an additional "Donate" sidebar section below the search
+    box on "Read the Docs"-hosted documentation.
+#}
+{%- if pagename != "search" %}
+<div id="searchbox" style="display: none">
+  <h3>{{ _('Quick search') }}</h3>
+    <form class="search" action="{{ pathto('search') }}" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="{{ _('Go') }}" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    {{ _('Enter search terms or a module, class or function name.') }}
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+{%- endif %}
+
+{# -- #}
+<script type="text/javascript">
+  /* <![CDATA[ */
+  (function() {
+    var s = document.createElement('script'), t = document.getElementsByTagName('script')[0];
+    s.type = 'text/javascript';
+    s.async = true;
+    s.src = 'http://api.flattr.com/js/0.6/load.js?mode=auto';
+    t.parentNode.insertBefore(s, t);
+  })();
+  /* ]]> */
+</script>
+<h3>Donate</h3>
+<ul>
+  <li>
+    <a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://github.com/earl/beanstalkc"></a>
+    <noscript><a href="http://flattr.com/thing/156111/beanstalkc" target="_blank"><img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a></noscript>
+  </li>
+</ul>

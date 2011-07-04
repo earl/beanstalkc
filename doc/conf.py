@@ -2,6 +2,7 @@
 #
 import sys, os
 sys.path.insert(0, os.path.abspath('..'))
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 templates_path = ['_templates']
 source_suffix = '.rst'
@@ -33,7 +34,6 @@ html_sidebars = {
         'relations.html',
         'sourcelink.html',
         'searchbox.html',
-        'donations.html',
     ]
 }
 
