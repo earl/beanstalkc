@@ -22,10 +22,9 @@ extensions = [
 
 # -- Options for HTML output ---------------------------------------------------
 
+html_theme = 'nature'
 if on_rtd:
     html_theme = 'default'
-else:
-    html_theme = 'nature'
 #html_last_updated_fmt = '%Y-%m-%d'
 html_use_smartypants = True
 html_sidebars = {
