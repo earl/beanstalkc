@@ -29,7 +29,8 @@ Here is a short example, to illustrate the flavor of beanstalkc:
     'hey!'
     >>> job.delete()
 
-For more information, see `TUTORIAL.md`, which will explain most everything.
+For more information, see the tutorial (in `TUTORIAL.mkd`), which will explain
+most everything.
 
 
 License
