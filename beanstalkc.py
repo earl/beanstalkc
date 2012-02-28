@@ -284,12 +284,5 @@ class Job(object):
 
 
 if __name__ == '__main__':
-    import doctest, os, signal
-    try:
-        pid = os.spawnlp(os.P_NOWAIT,
-                         'beanstalkd',
-                         'beanstalkd', '-l', '127.0.0.1', '-p', '14711')
-        doctest.testfile('TUTORIAL.mkd')
-        doctest.testfile('test/no-yaml.doctest')
-    finally:
-        os.kill(pid, signal.SIGTERM)
+    import nose
+    nose.main(argv=['nosetests', '-c', '.nose.cfg'])

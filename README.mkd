@@ -21,7 +21,7 @@ Usage
 Here is a short example, to illustrate the flavor of beanstalkc:
 
     >>> import beanstalkc
-    >>> beanstalk = beanstalkc.Connection(host='localhost', port=11300)
+    >>> beanstalk = beanstalkc.Connection(host='localhost', port=14711)
     >>> beanstalk.put('hey!')
     1
     >>> job = beanstalk.reserve()
