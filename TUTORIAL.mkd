@@ -172,7 +172,7 @@ So let's create another job:
 Now we retrieve job-level statistics:
 
     >>> from pprint import pprint
-    >>> pprint(job.stats())
+    >>> pprint(job.stats())                         # doctest: +ELLIPSIS
     {'age': 0,
      ...
      'id': 2,
@@ -185,14 +185,14 @@ If you try to access job stats after the job was deleted, you'll get a
 `CommandFailed` exception:
 
     >>> job.delete()
-    >>> job.stats()
+    >>> job.stats()                                 # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     CommandFailed: ('stats-job', 'NOT_FOUND', [])
 
 Let's have a look at some numbers for the `'default'` tube:
 
-    >>> pprint(beanstalk.stats_tube('default'))
+    >>> pprint(beanstalk.stats_tube('default'))     # doctest: +ELLIPSIS
     {...
      'current-jobs-ready': 0,
      'current-jobs-reserved': 0,
@@ -204,7 +204,7 @@ Let's have a look at some numbers for the `'default'` tube:
 Finally, there's an abundant amount of server-level statistics accessible via
 the `Connection`'s `stats` method. We won't go into details here, but:
 
-    >>> pprint(beanstalk.stats())
+    >>> pprint(beanstalk.stats())                   # doctest: +ELLIPSIS
     {...
      'current-connections': 1,
      'current-jobs-buried': 0,
@@ -343,7 +343,7 @@ requests on unreserved jobs are silently ignored:
 You can, though, delete a job that was not reserved by you:
 
     >>> job.delete()
-    >>> job.stats()
+    >>> job.stats()                                 # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     CommandFailed: ('stats-job', 'NOT_FOUND', [])
@@ -444,7 +444,7 @@ when creating the `Connection`:
     >>> beanstalk.tubes()
     '---\n- default\n'
 
-    >>> beanstalk.stats_tube('default')
+    >>> beanstalk.stats_tube('default')             # doctest: +ELLIPSIS
     '---\nname: default\ncurrent-jobs-urgent: 0\ncurrent-jobs-ready: 0\n...'
 
     >>> beanstalk.close()
@@ -462,7 +462,7 @@ Alternatively, you can also pass a function to be used as YAML parser:
     >>> beanstalk.tubes()
     ['---', '- default', '']
 
-    >>> beanstalk.stats_tube('default')
+    >>> beanstalk.stats_tube('default')             # doctest: +ELLIPSIS
     ['---', 'name: default', 'current-jobs-urgent: 0', ...]
 
     >>> beanstalk.close()
