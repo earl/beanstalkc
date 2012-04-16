@@ -10,4 +10,4 @@ script: nosetests -c .nose.cfg
 
 branches:
     only:
-        - wip-travisci
+        - master
