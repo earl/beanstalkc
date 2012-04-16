@@ -5,6 +5,7 @@ python:
 
 install:
     - sudo apt-get install beanstalkd
+    - pip install -r .travis-requirements.txt --use-mirrors
 script: nosetests -c .nose.cfg
 
 branches:
