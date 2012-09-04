@@ -25,7 +25,7 @@ import socket
 
 DEFAULT_HOST = 'localhost'
 DEFAULT_PORT = 11300
-DEFAULT_PRIORITY = 2**31
+DEFAULT_PRIORITY = 2 ** 31
 DEFAULT_TTR = 120
 
 
@@ -52,7 +52,7 @@ class Connection(object):
             except ImportError:
                 logging.error('Failed to load PyYAML, will not parse YAML')
                 parse_yaml = False
-        self._connect_timeout= connect_timeout
+        self._connect_timeout = connect_timeout
         self._parse_yaml = parse_yaml or (lambda x: x)
         self.host = host
         self.port = port
@@ -93,7 +93,7 @@ class Connection(object):
 
     def _read_body(self, size):
         body = SocketError.wrap(self._socket_file.read, size)
-        SocketError.wrap(self._socket_file.read, 2) # trailing crlf
+        SocketError.wrap(self._socket_file.read, 2)  # trailing crlf
         if size > 0 and not body:
             raise SocketError()
         return body
@@ -201,12 +201,12 @@ class Connection(object):
     def stats_tube(self, name):
         """Return a dict of stats about a given tube."""
         return self._interact_yaml('stats-tube %s\r\n' % name,
-                                  ['OK'],
-                                  ['NOT_FOUND'])
+                                   ['OK'],
+                                   ['NOT_FOUND'])
 
     def pause_tube(self, name, delay):
         """Pause a tube for a given delay time, in seconds."""
-        self._interact('pause-tube %s %d\r\n' %(name, delay),
+        self._interact('pause-tube %s %d\r\n' % (name, delay),
                        ['PAUSED'],
                        ['NOT_FOUND'])
 
