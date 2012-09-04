@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import os
-from distutils.spawn import find_executable
 from setuptools import setup
 
 from beanstalkc import __version__ as src_version
