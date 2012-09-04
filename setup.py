@@ -26,6 +26,7 @@ workqueue service.
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
+        'Operating System :: OS Independent',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
 )
