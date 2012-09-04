@@ -4,11 +4,11 @@ from setuptools import setup
 
 from beanstalkc import __version__ as src_version
 
-pkg_version = os.environ.get('BEANSTALKC_PKG_VERSION', src_version)
+PKG_VERSION = os.environ.get('BEANSTALKC_PKG_VERSION', src_version)
 
 setup(
     name='beanstalkc',
-    version=pkg_version,
+    version=PKG_VERSION,
     py_modules=['beanstalkc'],
 
     author='Andreas Bolka',

@@ -36,11 +36,11 @@ class DeadlineSoon(BeanstalkcException): pass
 
 class SocketError(BeanstalkcException):
     @staticmethod
-    def wrap(fn, *args, **kwargs):
+    def wrap(wrapped_function, *args, **kwargs):
         try:
-            return fn(*args, **kwargs)
-        except socket.error, e:
-            raise SocketError(e)
+            return wrapped_function(*args, **kwargs)
+        except socket.error, err:
+            raise SocketError(err)
 
 
 class Connection(object):
@@ -114,7 +114,7 @@ class Connection(object):
     def _interact_peek(self, command):
         try:
             return self._interact_job(command, ['FOUND'], ['NOT_FOUND'], False)
-        except CommandFailed, (_, status, results):
+        except CommandFailed, (_, _status, _results):
             return None
 
     # -- public interface --
