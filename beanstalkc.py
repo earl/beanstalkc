@@ -74,6 +74,11 @@ class Connection(object):
         except socket.error:
             pass
 
+    def reconnect(self):
+        """Re-connect to server."""
+        self.close()
+        self.connect()
+
     def _interact(self, command, expected_ok, expected_err=[]):
         SocketError.wrap(self._socket.sendall, command)
         status, results = self._read_response()
