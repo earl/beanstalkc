@@ -300,6 +300,14 @@ tell you how many jobs were actually kicked alive again:
     >>> beanstalk.kick(42)
     0
 
+You can also kick a specific job:
+    
+    >>> job = beanstalk.reserve()
+    >>> job.bury()
+    >>> job.stats()['state']
+    'buried'
+    >>> job.kick_job() # or beanstalk.kick_job(job.jid)
+
 
 Inspecting Jobs
 ---------------
