@@ -308,6 +308,10 @@ You can also kick a specific job:
     'buried'
     >>> job.kick_job() # or beanstalk.kick_job(job.jid)
 
+The `kick-job` command was introduced in beanstalkd v1.8, please make sure 
+beanstalkd version >= v1.8 if you want to use 
+this command.
+
 
 Inspecting Jobs
 ---------------
