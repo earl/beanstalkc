@@ -154,6 +154,10 @@ class Connection(object):
         """Kick at most bound jobs into the ready queue."""
         return int(self._interact_value('kick %d\r\n' % bound, ['KICKED']))
 
+    def kick_job(self, jid):
+        """Kick a specific job into the ready queue."""
+        self._interact('kick-job %d\r\n' % jid, ['KICKED'], ['NOT_FOUND'])
+
     def peek(self, jid):
         """Peek at a job. Returns a Job, or None."""
         return self._interact_peek('peek %d\r\n' % jid)
@@ -276,6 +280,9 @@ class Job(object):
         if self.reserved:
             self.conn.bury(self.jid, priority or self._priority())
             self.reserved = False
+
+    def kick_job(self):
+        self.conn.kick_job(self.jid)
 
     def touch(self):
         """Touch this reserved job, requesting more time to work on it before
