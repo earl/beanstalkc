@@ -281,7 +281,8 @@ class Job(object):
             self.conn.bury(self.jid, priority or self._priority())
             self.reserved = False
 
-    def kick_job(self):
+    def kick(self):
+        """Kick this job alive."""
         self.conn.kick_job(self.jid)
 
     def touch(self):
