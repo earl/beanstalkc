@@ -300,17 +300,18 @@ tell you how many jobs were actually kicked alive again:
     >>> beanstalk.kick(42)
     0
 
-You can also kick a specific job:
-    
+If you still have a handle to a job (or know its job ID), you can also kick
+alive this particular job, overriding the FIFO operation of the burial queue:
+
     >>> job = beanstalk.reserve()
     >>> job.bury()
     >>> job.stats()['state']
     'buried'
     >>> job.kick()
+    >>> job.stats()['state']
+    'ready'
 
-The `kick-job` command was introduced in beanstalkd v1.8, please make sure 
-beanstalkd version >= v1.8 if you want to use 
-this command.
+(NOTE: The `kick-job` command was introduced in beanstalkd v1.8.)
 
 
 Inspecting Jobs

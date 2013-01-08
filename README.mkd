@@ -12,7 +12,7 @@ beanstalkc is pure Python, and is compatible with [eventlet][] and [gevent][].
 [beanstalkd]: http://kr.github.com/beanstalkd/
 [eventlet]: http://eventlet.net/
 [gevent]: http://www.gevent.org/
-[pyyaml]: http://pyyaml.org/
+[PyYAML]: http://pyyaml.org/
 
 
 Usage
