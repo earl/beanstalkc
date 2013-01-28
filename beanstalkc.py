@@ -179,7 +179,7 @@ class Connection(object):
         return self._interact_yaml('list-tubes\r\n', ['OK'])
 
     def using(self):
-        """Return a list of all tubes currently being used."""
+        """Return the tube currently being used."""
         return self._interact_value('list-tube-used\r\n', ['USING'])
 
     def use(self, name):
