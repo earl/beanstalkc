@@ -70,6 +70,9 @@ class Connection(object):
         """Close connection to server."""
         try:
             self._socket.sendall('quit\r\n')
+        except socket.error:
+            pass
+        try:
             self._socket.close()
         except socket.error:
             pass
