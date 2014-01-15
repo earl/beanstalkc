@@ -133,7 +133,7 @@ class Connection(object):
         jid = self._interact_value(
                 'put %d %d %d %d\r\n%s\r\n' %
                     (priority, delay, ttr, len(body), body),
-                ['INSERTED', 'BURIED'], ['JOB_TOO_BIG'])
+                ['INSERTED'], ['JOB_TOO_BIG','BURIED','DRAINING'])
         return int(jid)
 
     def reserve(self, timeout=None):
