@@ -58,6 +58,12 @@ class Connection(object):
         self.port = port
         self.connect()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     def connect(self):
         """Connect to beanstalkd server."""
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
