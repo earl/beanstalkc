@@ -36,7 +36,7 @@ everything.
 License
 -------
 
-Copyright (C) 2008-2012 Andreas Bolka, Licensed under the [Apache License,
+Copyright (C) 2008-2014 Andreas Bolka, Licensed under the [Apache License,
 Version 2.0][license].
 
 [license]: http://www.apache.org/licenses/LICENSE-2.0
