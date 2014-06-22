@@ -10,10 +10,10 @@ env:
 
 install:
     # Install most recent beanstalkd from source
-    - wget https://github.com/downloads/kr/beanstalkd/beanstalkd-1.8.tar.gz
-    - tar xf beanstalkd-1.8.tar.gz
-    - make -C beanstalkd-1.8/
-    - mv beanstalkd-1.8/beanstalkd .
+    - wget https://github.com/downloads/kr/beanstalkd/beanstalkd-1.9.tar.gz
+    - tar xf beanstalkd-1.9.tar.gz
+    - make -C beanstalkd-1.9/
+    - mv beanstalkd-1.9/beanstalkd .
     # Install Python dependencies.
     - pip install -r .travis-requirements.txt --use-mirrors
 
