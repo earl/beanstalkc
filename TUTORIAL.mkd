@@ -6,6 +6,7 @@ Say hello to your fellow travel companion, the beanstalkc client library for
 Python. You'll get to know each other fairly well during this trip, so better
 start off on a friendly note. And now, let's go!
 
+
 Getting Started
 ---------------
 
@@ -362,16 +363,14 @@ You can, though, delete a job that was not reserved by you:
 
 Finally, you can also peek into the special queues for jobs that are delayed:
 
-    >>> beanstalk.put('o tempores', delay=120)
-    4
+    >>> _ = beanstalk.put('o tempores', delay=120)
     >>> job = beanstalk.peek_delayed()
     >>> job.stats()['state']
     'delayed'
 
 ... or buried:
 
-    >>> beanstalk.put('o mores!')
-    5
+    >>> _ = beanstalk.put('o mores!')
     >>> job = beanstalk.reserve()
     >>> job.bury()
 
