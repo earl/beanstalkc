@@ -70,9 +70,16 @@ strings is left up to you:
     AssertionError: Job body must be a str instance
 
 There is no restriction on what characters you can put in a job body, so they
-can be used to hold arbitrary binary data. If you want to send images, just
-`put` the image data as a string. If you want to send Unicode text, just use
-`unicode.encode` to convert it to a string with some encoding.
+can be used to hold arbitrary binary data:
+
+    >>> _ = beanstalk.put('\x00\x01\xfe\xff')
+    >>> job = beanstalk.reserve() ; print(repr(job.body)) ; job.delete()
+    '\x00\x01\xfe\xff'
+
+If you want to send images, just `put` the image data as a string. If you want
+to send Unicode text, just use `unicode.encode` to convert it to a string with
+some encoding.
+
 
 Tube Management
 ---------------
@@ -167,7 +174,7 @@ Statistical details for a job can only be retrieved during the job's lifecycle.
 So let's create another job:
 
     >>> beanstalk.put('ho?')
-    2
+    3
 
     >>> job = beanstalk.reserve()
 
@@ -177,7 +184,7 @@ Now we retrieve job-level statistics:
     >>> pprint(job.stats())                         # doctest: +ELLIPSIS
     {'age': 0,
      ...
-     'id': 2,
+     'id': 3,
      ...
      'state': 'reserved',
      ...
@@ -262,7 +269,7 @@ create a job with a delay. Such a job will only be available for reservation
 once this delay passes:
 
     >>> beanstalk.put('yes!', delay=1)
-    3
+    4
 
     >>> beanstalk.reserve(timeout=0) is None
     True
@@ -320,10 +327,10 @@ Inspecting Jobs
 
 Besides reserving jobs, a client can also "peek" at jobs. This allows to inspect
 jobs without modifying their state. If you know the `id` of a job you're
-interested, you can directly peek at the job. We still have job #3 hanging
+interested, you can directly peek at the job. We still have job #4 hanging
 around from our previous examples, so:
 
-    >>> job = beanstalk.peek(3)
+    >>> job = beanstalk.peek(4)
     >>> job.body
     'yes!'
 
