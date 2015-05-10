@@ -12,7 +12,7 @@ Setup a connection that won't parse YAML:
 
 Observe that YAML is not parsed:
 
-    >>> isinstance(beanstalk.stats(), str)
+    >>> not isinstance(beanstalk.stats(), dict)
     True
 
 Note that while Job#release and Job#bury will still work, they won't

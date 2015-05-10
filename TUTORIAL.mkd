@@ -186,9 +186,8 @@ If you try to access job stats after the job was deleted, you'll get a
 `CommandFailed` exception:
 
     >>> job.delete()
-    >>> job.stats()                                 # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
+    >>> job.stats()                         # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
-    ...
     CommandFailed: ('stats-job', 'NOT_FOUND', [])
 
 Let's have a look at some numbers for the `'default'` tube:
@@ -357,9 +356,8 @@ requests on unreserved jobs are silently ignored:
 You can, though, delete a job that was not reserved by you:
 
     >>> job.delete()
-    >>> job.stats()                                 # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
+    >>> job.stats()                         # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
-    ...
     CommandFailed: ('stats-job', 'NOT_FOUND', [])
 
 Finally, you can also peek into the special queues for jobs that are delayed:
