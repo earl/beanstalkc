@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 """beanstalkc - A beanstalkd Client Library for Python"""
 
+import logging
+import socket
+import sys
+
+
 __license__ = '''
-Copyright (C) 2008-2014 Andreas Bolka
+Copyright (C) 2008-2015 Andreas Bolka
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,10 +23,6 @@ limitations under the License.
 '''
 
 __version__ = '0.4.0'
-
-import logging
-import socket
-import sys
 
 
 DEFAULT_HOST = 'localhost'
