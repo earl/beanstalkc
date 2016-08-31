@@ -15,7 +15,7 @@ install:
     - make -C beanstalkd-1.10/
     - mv beanstalkd-1.10/beanstalkd .
     # Install Python dependencies.
-    - pip install -r .travis-requirements.txt --use-mirrors
+    - pip install -r .travis-requirements.txt
 
 script: nosetests -c .nose.cfg
 
