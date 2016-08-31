@@ -22,4 +22,4 @@ script: nosetests -c .nose.cfg
 branches:
     only:
         - master
-        - wip-travisci
+        - preflight
