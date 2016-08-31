@@ -7,7 +7,7 @@ import sys
 
 
 __license__ = '''
-Copyright (C) 2008-2015 Andreas Bolka
+Copyright (C) 2008-2016 Andreas Bolka
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
