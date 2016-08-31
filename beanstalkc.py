@@ -215,7 +215,8 @@ class Connection(object):
                                             ['WATCHING'],
                                             ['NOT_IGNORED']))
         except CommandFailed:
-            return 1
+            # Tried to ignore the only tube in the watchlist, which failed.
+            return 0
 
     def stats(self):
         """Return a dict of beanstalkd statistics."""

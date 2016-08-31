@@ -150,7 +150,7 @@ You can't watch zero tubes. So if you try to ignore the last tube you are
 watching, this is silently ignored:
 
     >>> beanstalk.ignore('default')
-    1
+    0
     >>> beanstalk.watching()
     ['default']
 
