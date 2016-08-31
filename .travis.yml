@@ -1,23 +1,49 @@
+#
+# .travis.yaml contains YAML-formatted (http://www.yaml.org/) build
+# instructions for continuous integration via Travis CI
+# (http://docs.travis-ci.com/).
+#
+
 language: python
 
-python:
-    - "2.6"
-    - "2.7"
+addons:
+    apt:
+        sources:
+            - deadsnakes
+        packages:
+            - python2.4-dev
+            - python2.5-dev
+            - python2.6-dev
+            - python2.7-dev
 
 env:
     global:
         - BEANSTALKD=./beanstalkd
+    matrix:
+        - PYV=2.4 ST=https://raw.githubusercontent.com/pypa/setuptools/bootstrap-py24/ez_setup.py
+        - PYV=2.5 ST=https://raw.githubusercontent.com/pypa/setuptools/bootstrap-py24/ez_setup.py
+        - PYV=2.6 ST=https://bootstrap.pypa.io/ez_setup.py
+        - PYV=2.7 ST=https://bootstrap.pypa.io/ez_setup.py
 
 install:
+    # Deactivate the virtualenv enabled by `language: python`.
+    - deactivate
     # Install most recent beanstalkd from source
     - wget https://github.com/kr/beanstalkd/archive/v1.10.tar.gz
     - tar xf v1.10.tar.gz
     - make -C beanstalkd-1.10/
     - mv beanstalkd-1.10/beanstalkd .
-    # Install Python dependencies.
-    - pip install -r .travis-requirements.txt
+    # Bootstrap easy_install ...
+    - wget -O /tmp/ez_setup.py $ST
+    - sudo python$PYV /tmp/ez_setup.py
+    # ... to use easy_install to install pip (1.1 works on 2.4) ...
+    - sudo easy_install-$PYV pip==1.1
+    # ... to use pip to install beanstalkc's dependencies ...
+    - sudo pip-$PYV install http://pyyaml.org/download/pyyaml/PyYAML-3.09.tar.gz
+    # ... and tes testing dependencies.
+    - sudo pip-$PYV install nose
 
-script: nosetests -c .nose.cfg
+script: nosetests-$PYV -c .nose.cfg
 
 branches:
     only:
