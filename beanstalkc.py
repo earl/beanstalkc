@@ -29,6 +29,7 @@ DEFAULT_HOST = 'localhost'
 DEFAULT_PORT = 11300
 DEFAULT_PRIORITY = 2 ** 31
 DEFAULT_TTR = 120
+DEFAULT_TUBE_NAME = 'default'
 
 
 class BeanstalkcException(Exception): pass
